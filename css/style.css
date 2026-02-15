@@ -605,3 +605,95 @@ body.dark-mode .subtopico-texto {
         padding: 0.6rem 0.7rem;
     }
 }
+
+/*
+==================================================
+ESTILOS DA PESQUISA - Resultados e listas
+==================================================
+*/
+
+.resultados-pesquisa h3 {
+    margin-bottom: 1rem;
+    color: var(--texto-escuro);
+    font-size: 1.2rem;
+}
+
+body.dark-mode .resultados-pesquisa h3 {
+    color: var(--texto-claro);
+}
+
+.resultados-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.resultado-item {
+    padding: 1rem;
+    border: 1px solid var(--cinza-medio);
+    border-radius: 6px;
+    margin-bottom: 0.8rem;
+    background-color: var(--branco);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.resultado-item:hover {
+    background-color: var(--cinza-claro);
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px var(--sombra);
+}
+
+body.dark-mode .resultado-item {
+    background-color: #333;
+    border-color: #555;
+    color: var(--texto-claro);
+}
+
+body.dark-mode .resultado-item:hover {
+    background-color: #3a3a3a;
+}
+
+.resultado-item strong {
+    color: var(--verde-intelbras);
+    font-size: 1rem;
+}
+
+.resultado-item small {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+    margin: 0.3rem 0;
+}
+
+body.dark-mode .resultado-item small {
+    color: #aaa;
+}
+
+.resultado-preview {
+    font-size: 0.9rem;
+    color: #444;
+    display: block;
+    margin-top: 0.3rem;
+    font-style: italic;
+}
+
+body.dark-mode .resultado-preview {
+    color: #bbb;
+}
+
+/* animacao pra quando aparece/desaparece */
+.resultados-pesquisa {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

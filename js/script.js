@@ -73,15 +73,173 @@ const dadosWiki = {
     ]
 };
 
+// FUNÇÃO PARA REMOVER ACENTOS E DEIXAR TUDO MINUSCULO
+function normalizarTexto(texto) {
+    if (!texto) return '';
+    return texto
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+// FUNÇÃO DE PESQUISA
+function pesquisar(termo) {
+    if (!termo || termo.trim() === '') {
+        return [];
+    }
+    
+    const termoNormalizado = normalizarTexto(termo);
+    const resultados = [];
+    
+    dadosWiki.segmentos.forEach(segmento => {
+        // pesquisa no titulo do segmento
+        if (normalizarTexto(segmento.titulo).includes(termoNormalizado)) {
+            resultados.push({
+                tipo: 'segmento',
+                segmento: segmento.titulo,
+                topico: null,
+                subtopico: null,
+                titulo: segmento.titulo,
+                texto: segmento.titulo,
+                caminho: segmento.titulo
+            });
+        }
+        
+        segmento.topicos.forEach(topico => {
+            // pesquisa no titulo do topico
+            if (normalizarTexto(topico.titulo).includes(termoNormalizado)) {
+                resultados.push({
+                    tipo: 'topico',
+                    segmento: segmento.titulo,
+                    topico: topico.titulo,
+                    subtopico: null,
+                    titulo: topico.titulo,
+                    texto: topico.texto || '',
+                    caminho: `${segmento.titulo} > ${topico.titulo}`
+                });
+            }
+            
+            // pesquisa no texto do topico
+            if (topico.texto && normalizarTexto(topico.texto).includes(termoNormalizado)) {
+                resultados.push({
+                    tipo: 'topico-texto',
+                    segmento: segmento.titulo,
+                    topico: topico.titulo,
+                    subtopico: null,
+                    titulo: `Texto: ${topico.titulo}`,
+                    texto: topico.texto,
+                    caminho: `${segmento.titulo} > ${topico.titulo} (texto)`
+                });
+            }
+            
+            topico.subtopicos.forEach(subtopico => {
+                // pesquisa no titulo do subtopico
+                if (normalizarTexto(subtopico.titulo).includes(termoNormalizado)) {
+                    resultados.push({
+                        tipo: 'subtopico',
+                        segmento: segmento.titulo,
+                        topico: topico.titulo,
+                        subtopico: subtopico.titulo,
+                        titulo: subtopico.titulo,
+                        texto: subtopico.texto || '',
+                        caminho: `${segmento.titulo} > ${topico.titulo} > ${subtopico.titulo}`
+                    });
+                }
+                
+                // pesquisa no texto do subtopico
+                if (subtopico.texto && normalizarTexto(subtopico.texto).includes(termoNormalizado)) {
+                    resultados.push({
+                        tipo: 'subtopico-texto',
+                        segmento: segmento.titulo,
+                        topico: topico.titulo,
+                        subtopico: subtopico.titulo,
+                        titulo: `Texto: ${subtopico.titulo}`,
+                        texto: subtopico.texto,
+                        caminho: `${segmento.titulo} > ${topico.titulo} > ${subtopico.titulo} (texto)`
+                    });
+                }
+            });
+        });
+    });
+    
+    return resultados;
+}
+
+// FUNÇÃO PARA MOSTRAR RESULTADOS
+function mostrarResultados(resultados, termo) {
+    const areaResultados = document.getElementById('resultadosPesquisa');
+    const segmentosContainer = document.getElementById('segmentosContainer');
+    
+    if (!areaResultados) return;
+    
+    if (resultados.length === 0) {
+        areaResultados.style.display = 'block';
+        areaResultados.innerHTML = `<p>Nenhum resultado encontrado para "${termo}"</p>`;
+        return;
+    }
+    
+    let html = `<h3>Resultados para "${termo}" (${resultados.length})</h3>`;
+    html += '<ul class="resultados-lista">';
+    
+    resultados.forEach(result => {
+        html += `
+            <li class="resultado-item" data-caminho="${result.caminho}">
+                <strong>${result.titulo}</strong><br>
+                <small>${result.caminho}</small><br>
+                <span class="resultado-preview">${result.texto.substring(0, 100)}${result.texto.length > 100 ? '...' : ''}</span>
+            </li>
+        `;
+    });
+    
+    html += '</ul>';
+    areaResultados.innerHTML = html;
+    areaResultados.style.display = 'block';
+    
+    // esconde os segmentos enquanto mostra resultados
+    segmentosContainer.style.display = 'none';
+    
+    // adiciona evento de clique nos resultados
+    document.querySelectorAll('.resultado-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const caminho = this.dataset.caminho;
+            navegarParaResultado(caminho);
+        });
+    });
+}
+
+// FUNÇÃO PARA NAVEGAR ATÉ O RESULTADO CLICADO
+function navegarParaResultado(caminho) {
+    const areaResultados = document.getElementById('resultadosPesquisa');
+    const segmentosContainer = document.getElementById('segmentosContainer');
+    
+    // esconde resultados e mostra segmentos
+    areaResultados.style.display = 'none';
+    segmentosContainer.style.display = 'block';
+    
+    // limpa a barra de pesquisa
+    const barraPesquisa = document.querySelector('.barra-pesquisa');
+    barraPesquisa.value = '';
+    
+    // aqui poderia expandir automaticamente o item encontrado
+    // por enquanto so volta pra visualizacao normal
+}
+
+// FUNÇÃO PARA LIMPAR PESQUISA
+function limparPesquisa() {
+    const areaResultados = document.getElementById('resultadosPesquisa');
+    const segmentosContainer = document.getElementById('segmentosContainer');
+    
+    areaResultados.style.display = 'none';
+    segmentosContainer.style.display = 'block';
+}
+
 // FUNÇÕES DO TEMA CLARO/ESCURO
 function alternarTema() {
     const body = document.body;
     const iconeTema = document.querySelector('.icone-tema');
     
-    // alterna a classe dark-mode
     body.classList.toggle('dark-mode');
     
-    // troca o icone (sol ☀️ ou lua 🌙)
     if (body.classList.contains('dark-mode')) {
         iconeTema.textContent = '🌙';
         localStorage.setItem('tema', 'escuro');
@@ -103,7 +261,6 @@ function carregarTemaSalvo() {
         body.classList.remove('dark-mode');
         iconeTema.textContent = '☀️';
     } else {
-        // se nao tiver tema salvo, verifica a preferencia do sistema
         const prefereEscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (prefereEscuro) {
             body.classList.add('dark-mode');
@@ -204,10 +361,8 @@ function configurarCliques() {
             const segmento = this.closest('.segmento');
             const topicosContainer = segmento.querySelector('.topicos-container');
             
-            // alterna a classe "aberto" no segmento
             segmento.classList.toggle('aberto');
             
-            // mostra ou esconde o container de topicos
             if (topicosContainer.style.display === 'none') {
                 topicosContainer.style.display = 'block';
             } else {
@@ -222,10 +377,8 @@ function configurarCliques() {
             e.stopPropagation();
             const topico = this.closest('.topico');
             
-            // alterna a classe "aberto" no topico
             topico.classList.toggle('aberto');
             
-            // mostra ou esconde o texto do topico (se tiver)
             const textoTopico = topico.querySelector('.topico-texto');
             if (textoTopico) {
                 if (textoTopico.style.display === 'none') {
@@ -235,7 +388,6 @@ function configurarCliques() {
                 }
             }
             
-            // mostra ou esconde os subtopicos (se tiver)
             const subtopicosContainer = topico.querySelector('.subtopicos-container');
             if (subtopicosContainer) {
                 if (subtopicosContainer.style.display === 'none') {
@@ -253,10 +405,8 @@ function configurarCliques() {
             e.stopPropagation();
             const subtopico = this.closest('.subtopico');
             
-            // alterna a classe "aberto" no subtopico
             subtopico.classList.toggle('aberto');
             
-            // mostra ou esconde o texto do subtopico
             const textoSubtopico = subtopico.querySelector('.subtopico-texto');
             if (textoSubtopico) {
                 if (textoSubtopico.style.display === 'none') {
@@ -279,5 +429,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const botaoTema = document.getElementById('botaoTema');
     if (botaoTema) {
         botaoTema.addEventListener('click', alternarTema);
+    }
+    
+    // evento da barra de pesquisa
+    const barraPesquisa = document.querySelector('.barra-pesquisa');
+    if (barraPesquisa) {
+        let timeoutId;
+        
+        barraPesquisa.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            
+            const termo = this.value.trim();
+            
+            if (termo === '') {
+                limparPesquisa();
+                return;
+            }
+            
+            // delay pra nao pesquisar a cada letra (melhor performance)
+            timeoutId = setTimeout(() => {
+                const resultados = pesquisar(termo);
+                mostrarResultados(resultados, termo);
+            }, 300);
+        });
+        
+        // limpar pesquisa com ESC
+        barraPesquisa.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                this.value = '';
+                limparPesquisa();
+            }
+        });
     }
 });
