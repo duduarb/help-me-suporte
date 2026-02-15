@@ -73,6 +73,49 @@ const dadosWiki = {
     ]
 };
 
+// FUNÇÕES DO TEMA CLARO/ESCURO
+function alternarTema() {
+    const body = document.body;
+    const iconeTema = document.querySelector('.icone-tema');
+    
+    // alterna a classe dark-mode
+    body.classList.toggle('dark-mode');
+    
+    // troca o icone (sol ☀️ ou lua 🌙)
+    if (body.classList.contains('dark-mode')) {
+        iconeTema.textContent = '🌙';
+        localStorage.setItem('tema', 'escuro');
+    } else {
+        iconeTema.textContent = '☀️';
+        localStorage.setItem('tema', 'claro');
+    }
+}
+
+function carregarTemaSalvo() {
+    const temaSalvo = localStorage.getItem('tema');
+    const iconeTema = document.querySelector('.icone-tema');
+    const body = document.body;
+    
+    if (temaSalvo === 'escuro') {
+        body.classList.add('dark-mode');
+        iconeTema.textContent = '🌙';
+    } else if (temaSalvo === 'claro') {
+        body.classList.remove('dark-mode');
+        iconeTema.textContent = '☀️';
+    } else {
+        // se nao tiver tema salvo, verifica a preferencia do sistema
+        const prefereEscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefereEscuro) {
+            body.classList.add('dark-mode');
+            iconeTema.textContent = '🌙';
+        } else {
+            body.classList.remove('dark-mode');
+            iconeTema.textContent = '☀️';
+        }
+    }
+}
+
+// FUNÇÃO PARA CARREGAR OS SEGMENTOS
 function carregarSegmentos() {
     const container = document.getElementById('segmentosContainer');
     if (!container) return;
@@ -152,6 +195,7 @@ function carregarSegmentos() {
     });
 }
 
+// FUNÇÃO PARA CONFIGURAR OS CLIQUES (ABRIR/FECHAR)
 function configurarCliques() {
     // clique nos titulos dos segmentos
     document.querySelectorAll('.segmento-titulo').forEach(titulo => {
@@ -225,7 +269,15 @@ function configurarCliques() {
     });
 }
 
+// INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', () => {
     carregarSegmentos();
     configurarCliques();
+    carregarTemaSalvo();
+    
+    // evento do botao de tema
+    const botaoTema = document.getElementById('botaoTema');
+    if (botaoTema) {
+        botaoTema.addEventListener('click', alternarTema);
+    }
 });
