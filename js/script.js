@@ -6,38 +6,10 @@ const dadosWiki = {
             titulo: 'Redes',
             topicos: [
                 {
-                    id: 'switch',
-                    titulo: 'Switches',
-                    texto: 'Os switches Intelbras sao equipamentos de rede que permitem a conexao de varios dispositivos em uma rede local (LAN). Eles operam na camada 2 do modelo OSI e utilizam enderecos MAC para encaminhar os dados apenas para a porta de destino correta.',
-                    subtopicos: [
-                        {
-                            id: 'switch-nao-gerenciavel',
-                            titulo: 'Switches Nao Gerenciaveis',
-                            texto: 'Modelos plug-and-play que nao permitem configuracoes avancadas. Ideais para residencias e pequenas empresas. Exemplos: Switch 5 Portas, Switch 8 Portas.'
-                        },
-                        {
-                            id: 'switch-gerenciavel',
-                            titulo: 'Switches Gerenciaveis',
-                            texto: 'Permitem configuracoes avancadas como VLANs, QoS, SNMP e agregacao de links. Indicados para empresas que precisam de maior controle da rede. Exemplos: Switch 24 Portas Gerenciavel, Switch 48 Portas com PoE.'
-                        }
-                    ]
-                },
-                {
-                    id: 'roteador',
-                    titulo: 'Roteadores',
-                    texto: 'Os roteadores Intelbras conectam diferentes redes e permitem o compartilhamento de internet. Possuem funcoes como NAT, DHCP, firewall e, em alguns modelos, Wi-Fi.',
-                    subtopicos: [
-                        {
-                            id: 'roteador-wireless',
-                            titulo: 'Roteadores Wireless',
-                            texto: 'Modelos com Wi-Fi integrado para conexao sem fio. Disponiveis nas frequencias 2.4GHz e 5GHz (dual band).'
-                        },
-                        {
-                            id: 'roteador-empresarial',
-                            titulo: 'Roteadores Empresariais',
-                            texto: 'Equipamentos com maior capacidade de processamento e recursos avancados de seguranca, ideais para ambientes corporativos.'
-                        }
-                    ]
+                    id: 'em-breve-redes',
+                    titulo: 'Em breve',
+                    texto: 'Conteúdo de redes será adicionado em breve.',
+                    subtopicos: []
                 }
             ]
         },
@@ -46,26 +18,39 @@ const dadosWiki = {
             titulo: 'Fechaduras',
             topicos: [
                 {
-                    id: 'fechadura-biometrica',
-                    titulo: 'Fechaduras Biometricas',
-                    texto: 'Fechaduras que utilizam a digital do usuario para liberar o acesso. Podem armazenar multiplas digitais e oferecem diferentes niveis de permissao.',
+                    id: 'configuracoes',
+                    titulo: 'Configurações',
+                    texto: '',
                     subtopicos: [
                         {
-                            id: 'cadastro-digital',
-                            titulo: 'Cadastro de Digitais',
-                            texto: 'Processo para adicionar novas digitais: 1. Acesse o modo de programacao 2. Selecione "Cadastrar Usuario" 3. Escolha a posicao 4. Leia a digital 3 vezes 5. Confirme.'
-                        },
-                        {
-                            id: 'exclusao-digital',
-                            titulo: 'Exclusao de Digitais',
-                            texto: 'Para remover digitais: 1. Modo programacao 2. Selecione "Excluir Usuario" 3. Escolha a posicao a remover ou selecione "Excluir Todos" para reset completo.'
+                            id: 'reset-fechadura',
+                            titulo: 'Reset da Fechadura',
+                            texto: '1. Segure o botão de cadastro continuamente\n2. Aguarde até ouvir os bips e o teclado apagar\n3. Solte o botão APENAS quando o teclado acender novamente\n4. Digite o código: 123578951\n5. Pressione e segure a tecla de engrenagem (⚙️) ou # (conforme o modelo)\n6. Mantenha pressionado até o teclado apagar completamente\n7. Quando apagar, teste abrir com a senha: 1234'
                         }
                     ]
                 },
                 {
-                    id: 'fechadura-eletronica',
-                    titulo: 'Fechaduras Eletronicas',
-                    texto: 'Modelos que utilizam senha, cartao de proximidade ou controle remoto para acesso. Ideais para ambientes comerciais e residenciais.',
+                    id: 'nao-perturbe',
+                    titulo: 'Não Perturbe',
+                    texto: '',
+                    subtopicos: []
+                },
+                {
+                    id: 'menu-simples',
+                    titulo: 'Menu Simples',
+                    texto: '',
+                    subtopicos: []
+                },
+                {
+                    id: 'erros',
+                    titulo: 'Erros',
+                    texto: '',
+                    subtopicos: []
+                },
+                {
+                    id: 'instalacao',
+                    titulo: 'Instalação',
+                    texto: '',
                     subtopicos: []
                 }
             ]
@@ -399,7 +384,7 @@ function carregarSegmentos() {
                     
                     const textoSubtopico = document.createElement('div');
                     textoSubtopico.className = 'subtopico-texto';
-                    textoSubtopico.textContent = subtopico.texto;
+                    textoSubtopico.innerHTML = subtopico.texto.replace(/\n/g, '<br>');
                     textoSubtopico.style.display = 'none';
                     subtopicoEl.appendChild(textoSubtopico);
                     
