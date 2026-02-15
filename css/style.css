@@ -19,9 +19,11 @@ que vou usar no site inteiro
 :root {
     --verde-intelbras: #00a859;  /* Esse verde e a cara da Intelbras */
     --branco: #ffffff;           /* Branco pra fundo quando for modo claro */
+    --preto: #1a1a1a;           /* Preto pra fundo no modo escuro */
     --cinza-claro: #f5f5f5;      /* Cinza bem clarinho pra fundo de cards */
     --cinza-medio: #e0e0e0;      /* Cinza pra bordas e separar coisas */
     --texto-escuro: #333333;     /* Cor do texto quando o fundo e claro */
+    --texto-claro: #f0f0f0;      /* Cor do texto quando o fundo e escuro */
     --sombra: rgba(0, 0, 0, 0.1); /* Sombra leve pra dar profundidade */
 }
 
@@ -38,6 +40,13 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* MODO ESCURO - Quando a classe dark-mode for adicionada ao body */
+body.dark-mode {
+    background-color: var(--preto);
+    color: var(--texto-claro);
 }
 
 /*
@@ -160,6 +169,13 @@ Area que mostra os resultados da pesquisa
     border: 1px solid var(--cinza-medio);
 }
 
+/* Ajuste da cor no modo escuro para area de resultados */
+body.dark-mode .resultados-pesquisa {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: var(--texto-claro);
+}
+
 /*
 Container que segura todos os segmentos (Redes, Fechaduras...)
 */
@@ -233,4 +249,359 @@ Os SVGs (icones) ficam do tamanho que eu definir e herdam a cor
     fill: currentColor;
     width: 24px;  /* Diminui o tamanho dos icones pra combinar com o rodape menor */
     height: 24px;
+}
+
+/*
+==================================================
+ESTILOS DOS SEGMENTOS - Cards principais
+==================================================
+*/
+
+/* Card de cada segmento (Redes, Fechaduras, etc) */
+.segmento {
+    background-color: var(--branco);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--sombra);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid var(--cinza-medio);
+}
+
+/* Quando o segmento estiver aberto, muda levemente a sombra */
+.segmento.aberto {
+    box-shadow: 0 6px 16px var(--sombra);
+}
+
+/* Titulo do segmento - tem clique pra abrir/fechar */
+.segmento-titulo {
+    background-color: var(--verde-intelbras);
+    color: var(--branco);
+    padding: 1.2rem 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    margin: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Efeito ao passar o mouse no titulo do segmento */
+.segmento-titulo:hover {
+    background-color: #008c4a; /* Verde um pouco mais escuro */
+}
+
+/* Seta indicando que pode expandir */
+.segmento-titulo::after {
+    content: '▼';
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+    opacity: 0.9;
+}
+
+/* Quando aberto, a seta gira */
+.segmento.aberto .segmento-titulo::after {
+    transform: rotate(180deg);
+}
+
+/* Container que agrupa os topicos dentro do segmento */
+.topicos-container {
+    padding: 1.2rem;
+    background-color: var(--cinza-claro);
+    transition: all 0.3s ease;
+}
+
+/*
+==================================================
+ESTILOS DOS TOPICOS - Cards secundarios
+==================================================
+*/
+
+/* Card de cada topico (ex: Switches dentro de Redes) */
+.topico {
+    background-color: var(--branco);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--cinza-medio);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px var(--sombra);
+}
+
+/* Efeito leve ao passar o mouse no card do topico */
+.topico:hover {
+    box-shadow: 0 4px 8px var(--sombra);
+}
+
+/* Titulo do topico - tambem clicavel */
+.topico-titulo {
+    background-color: #e8e8e8;
+    padding: 1rem 1.2rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    margin: 0;
+    border-bottom: 1px solid transparent;
+}
+
+.topico-titulo:hover {
+    background-color: #d8d8d8;
+}
+
+/* Quando o topico esta aberto, o titulo tem borda */
+.topico.aberto .topico-titulo {
+    border-bottom-color: var(--cinza-medio);
+}
+
+/* Seta do topico */
+.topico-titulo::after {
+    content: '▼';
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    opacity: 0.7;
+}
+
+.topico.aberto .topico-titulo::after {
+    transform: rotate(180deg);
+}
+
+/* Texto explicativo do topico */
+.topico-texto {
+    padding: 1.2rem;
+    background-color: var(--branco);
+    line-height: 1.6;
+    color: var(--texto-escuro);
+    font-size: 0.95rem;
+    border-top: 1px solid var(--cinza-medio);
+}
+
+/*
+==================================================
+ESTILOS DOS SUBTOPICOS - Nivel mais especifico
+==================================================
+*/
+
+/* Container que agrupa os subtopicos */
+.subtopicos-container {
+    padding: 0.8rem;
+    background-color: #fafafa;
+    border-top: 1px solid var(--cinza-medio);
+}
+
+/* Card de cada subtopico */
+.subtopico {
+    background-color: var(--branco);
+    border-radius: 6px;
+    margin-bottom: 0.8rem;
+    border: 1px solid var(--cinza-medio);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.subtopico:last-child {
+    margin-bottom: 0;
+}
+
+/* Titulo do subtopico - tambem clicavel */
+.subtopico-titulo {
+    background-color: #f0f0f0;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    margin: 0;
+}
+
+.subtopico-titulo:hover {
+    background-color: #e0e0e0;
+}
+
+/* Seta do subtopico (menor que as outras) */
+.subtopico-titulo::after {
+    content: '▼';
+    font-size: 0.7rem;
+    transition: transform 0.3s ease;
+    opacity: 0.6;
+}
+
+.subtopico.aberto .subtopico-titulo::after {
+    transform: rotate(180deg);
+}
+
+/* Texto explicativo do subtopico */
+.subtopico-texto {
+    padding: 1rem;
+    background-color: var(--branco);
+    line-height: 1.6;
+    color: var(--texto-escuro);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--cinza-medio);
+}
+
+/*
+==================================================
+MODO ESCURO - Cores para o tema noturno
+==================================================
+*/
+
+body.dark-mode .segmento {
+    background-color: #2a2a2a;
+    border-color: #444;
+}
+
+body.dark-mode .topicos-container {
+    background-color: #222;
+}
+
+body.dark-mode .topico {
+    background-color: #333;
+    border-color: #555;
+}
+
+body.dark-mode .topico-titulo {
+    background-color: #3a3a3a;
+    color: var(--texto-claro);
+    border-bottom-color: #555;
+}
+
+body.dark-mode .topico-titulo:hover {
+    background-color: #444;
+}
+
+body.dark-mode .topico-texto {
+    background-color: #333;
+    color: #ddd;
+    border-top-color: #555;
+}
+
+body.dark-mode .subtopicos-container {
+    background-color: #2a2a2a;
+}
+
+body.dark-mode .subtopico {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+body.dark-mode .subtopico-titulo {
+    background-color: #444;
+    color: var(--texto-claro);
+}
+
+body.dark-mode .subtopico-titulo:hover {
+    background-color: #4a4a4a;
+}
+
+body.dark-mode .subtopico-texto {
+    background-color: #3a3a3a;
+    color: #ccc;
+    border-top-color: #555;
+}
+
+
+/* ajustes para tablets */
+@media (max-width: 768px) {
+    .conteudo-principal {
+        margin: 1.5rem auto;
+        padding: 0 1rem;
+    }
+    
+    .segmento-titulo {
+        padding: 1rem 1.2rem;
+        font-size: 1.2rem;
+    }
+    
+    .topico-titulo {
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .subtopico-titulo {
+        padding: 0.7rem 0.9rem;
+        font-size: 0.95rem;
+    }
+    
+    .topico-texto,
+    .subtopico-texto {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ajuste para celu */
+@media (max-width: 480px) {
+    .conteudo-principal {
+        margin: 1rem auto;
+        padding: 0 0.8rem;
+    }
+    
+    .segmento {
+        margin-bottom: 1rem;
+    }
+    
+    .segmento-titulo {
+        padding: 0.8rem 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .topicos-container {
+        padding: 0.8rem;
+    }
+    
+    .topico-titulo {
+        padding: 0.7rem 0.9rem;
+        font-size: 0.95rem;
+    }
+    
+    .topico-texto {
+        padding: 0.9rem;
+        font-size: 0.85rem;
+    }
+    
+    .subtopicos-container {
+        padding: 0.5rem;
+    }
+    
+    .subtopico-titulo {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .subtopico-texto {
+        padding: 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Setas um pouco menores no celular */
+    .segmento-titulo::after,
+    .topico-titulo::after,
+    .subtopico-titulo::after {
+        font-size: 0.7rem;
+    }
+}
+
+/* ajustes para telas pequenas */
+@media (max-width: 320px) {
+    .segmento-titulo {
+        padding: 0.7rem 0.8rem;
+        font-size: 1rem;
+    }
+    
+    .topico-titulo {
+        padding: 0.6rem 0.7rem;
+    }
 }
