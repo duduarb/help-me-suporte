@@ -96,9 +96,9 @@ function pesquisar(termo) {
         if (normalizarTexto(segmento.titulo).includes(termoNormalizado)) {
             resultados.push({
                 tipo: 'segmento',
-                segmento: segmento.titulo,
-                topico: null,
-                subtopico: null,
+                segmentoId: segmento.id,
+                topicoId: null,
+                subtopicoId: null,
                 titulo: segmento.titulo,
                 texto: segmento.titulo,
                 caminho: segmento.titulo
@@ -110,9 +110,9 @@ function pesquisar(termo) {
             if (normalizarTexto(topico.titulo).includes(termoNormalizado)) {
                 resultados.push({
                     tipo: 'topico',
-                    segmento: segmento.titulo,
-                    topico: topico.titulo,
-                    subtopico: null,
+                    segmentoId: segmento.id,
+                    topicoId: topico.id,
+                    subtopicoId: null,
                     titulo: topico.titulo,
                     texto: topico.texto || '',
                     caminho: `${segmento.titulo} > ${topico.titulo}`
@@ -123,9 +123,9 @@ function pesquisar(termo) {
             if (topico.texto && normalizarTexto(topico.texto).includes(termoNormalizado)) {
                 resultados.push({
                     tipo: 'topico-texto',
-                    segmento: segmento.titulo,
-                    topico: topico.titulo,
-                    subtopico: null,
+                    segmentoId: segmento.id,
+                    topicoId: topico.id,
+                    subtopicoId: null,
                     titulo: `Texto: ${topico.titulo}`,
                     texto: topico.texto,
                     caminho: `${segmento.titulo} > ${topico.titulo} (texto)`
@@ -137,9 +137,9 @@ function pesquisar(termo) {
                 if (normalizarTexto(subtopico.titulo).includes(termoNormalizado)) {
                     resultados.push({
                         tipo: 'subtopico',
-                        segmento: segmento.titulo,
-                        topico: topico.titulo,
-                        subtopico: subtopico.titulo,
+                        segmentoId: segmento.id,
+                        topicoId: topico.id,
+                        subtopicoId: subtopico.id,
                         titulo: subtopico.titulo,
                         texto: subtopico.texto || '',
                         caminho: `${segmento.titulo} > ${topico.titulo} > ${subtopico.titulo}`
@@ -150,9 +150,9 @@ function pesquisar(termo) {
                 if (subtopico.texto && normalizarTexto(subtopico.texto).includes(termoNormalizado)) {
                     resultados.push({
                         tipo: 'subtopico-texto',
-                        segmento: segmento.titulo,
-                        topico: topico.titulo,
-                        subtopico: subtopico.titulo,
+                        segmentoId: segmento.id,
+                        topicoId: topico.id,
+                        subtopicoId: subtopico.id,
                         titulo: `Texto: ${subtopico.titulo}`,
                         texto: subtopico.texto,
                         caminho: `${segmento.titulo} > ${topico.titulo} > ${subtopico.titulo} (texto)`
@@ -181,9 +181,9 @@ function mostrarResultados(resultados, termo) {
     let html = `<h3>Resultados para "${termo}" (${resultados.length})</h3>`;
     html += '<ul class="resultados-lista">';
     
-    resultados.forEach(result => {
+    resultados.forEach((result, index) => {
         html += `
-            <li class="resultado-item" data-caminho="${result.caminho}">
+            <li class="resultado-item" data-index="${index}">
                 <strong>${result.titulo}</strong><br>
                 <small>${result.caminho}</small><br>
                 <span class="resultado-preview">${result.texto.substring(0, 100)}${result.texto.length > 100 ? '...' : ''}</span>
@@ -201,27 +201,92 @@ function mostrarResultados(resultados, termo) {
     // adiciona evento de clique nos resultados
     document.querySelectorAll('.resultado-item').forEach(item => {
         item.addEventListener('click', function() {
-            const caminho = this.dataset.caminho;
-            navegarParaResultado(caminho);
+            const index = this.dataset.index;
+            navegarParaResultado(resultados[index]);
         });
     });
 }
 
 // FUNÇÃO PARA NAVEGAR ATÉ O RESULTADO CLICADO
-function navegarParaResultado(caminho) {
+function navegarParaResultado(resultado) {
     const areaResultados = document.getElementById('resultadosPesquisa');
     const segmentosContainer = document.getElementById('segmentosContainer');
     
-    // esconde resultados e mostra segmentos
-    areaResultados.style.display = 'none';
+    // mostra os segmentos
     segmentosContainer.style.display = 'block';
     
-    // limpa a barra de pesquisa
+    // encontra o segmento
+    const segmentoEl = document.querySelector(`.segmento[data-id="${resultado.segmentoId}"]`);
+    if (!segmentoEl) return;
+    
+    // abre o segmento
+    const topicosContainer = segmentoEl.querySelector('.topicos-container');
+    if (topicosContainer.style.display === 'none') {
+        segmentoEl.classList.add('aberto');
+        topicosContainer.style.display = 'block';
+    }
+    
+    // se for topico ou subtopico, abre o topico
+    if (resultado.topicoId) {
+        const topicoEl = segmentoEl.querySelector(`.topico[data-id="${resultado.topicoId}"]`);
+        if (topicoEl) {
+            const textoTopico = topicoEl.querySelector('.topico-texto');
+            const subtopicosContainer = topicoEl.querySelector('.subtopicos-container');
+            
+            topicoEl.classList.add('aberto');
+            
+            if (textoTopico) textoTopico.style.display = 'block';
+            if (subtopicosContainer) subtopicosContainer.style.display = 'block';
+            
+            // se for subtopico, abre o subtopico
+            if (resultado.subtopicoId) {
+                const subtopicoEl = topicoEl.querySelector(`.subtopico[data-id="${resultado.subtopicoId}"]`);
+                if (subtopicoEl) {
+                    const textoSubtopico = subtopicoEl.querySelector('.subtopico-texto');
+                    subtopicoEl.classList.add('aberto');
+                    if (textoSubtopico) textoSubtopico.style.display = 'block';
+                    
+                    // rola ate o subtopico
+                    setTimeout(() => {
+                        subtopicoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // destaca o item
+                        subtopicoEl.style.transition = 'background-color 0.5s';
+                        subtopicoEl.style.backgroundColor = 'rgba(0, 168, 89, 0.2)';
+                        setTimeout(() => {
+                            subtopicoEl.style.backgroundColor = '';
+                        }, 1500);
+                    }, 100);
+                }
+            } else {
+                // rola ate o topico
+                setTimeout(() => {
+                    topicoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // destaca o item
+                    topicoEl.style.transition = 'background-color 0.5s';
+                    topicoEl.style.backgroundColor = 'rgba(0, 168, 89, 0.2)';
+                    setTimeout(() => {
+                        topicoEl.style.backgroundColor = '';
+                    }, 1500);
+                }, 100);
+            }
+        }
+    } else {
+        // rola ate o segmento
+        setTimeout(() => {
+            segmentoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // destaca o item
+            segmentoEl.style.transition = 'box-shadow 0.5s';
+            segmentoEl.style.boxShadow = '0 0 0 3px var(--verde-intelbras)';
+            setTimeout(() => {
+                segmentoEl.style.boxShadow = '';
+            }, 1500);
+        }, 100);
+    }
+    
+    // esconde resultados e limpa pesquisa
+    areaResultados.style.display = 'none';
     const barraPesquisa = document.querySelector('.barra-pesquisa');
     barraPesquisa.value = '';
-    
-    // aqui poderia expandir automaticamente o item encontrado
-    // por enquanto so volta pra visualizacao normal
 }
 
 // FUNÇÃO PARA LIMPAR PESQUISA
