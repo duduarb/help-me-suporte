@@ -25,27 +25,103 @@ const dadosWiki = {
                         {
                             id: 'reset-fechadura',
                             titulo: 'Reset da Fechadura',
-                            texto: '1. Segure o botão de cadastro continuamente\n2. Aguarde até ouvir os bips e o teclado apagar\n3. Solte o botão APENAS quando o teclado acender novamente\n4. Digite o código: 123578951\n5. Pressione e segure a tecla de engrenagem (⚙️) ou # (conforme o modelo)\n6. Mantenha pressionado até o teclado apagar completamente\n7. Quando apagar, teste abrir com a senha: 1234'
+                            texto: '1. Segure o botão de cadastro continuamente<br>2. Aguarde até ouvir os bips e o teclado apagar<br>3. Solte o botão APENAS quando o teclado acender novamente<br>4. Digite o código: 123578951<br>5. Pressione e segure a tecla de engrenagem (⚙️) ou # (conforme o modelo)<br>6. Mantenha pressionado até o teclado apagar completamente<br>7. Quando apagar, teste abrir com a senha: 1234<br><br>Vídeo tutorial: <a href="https://www.youtube.com/watch?v=o0dvOdV0gIE" target="_blank">https://www.youtube.com/watch?v=o0dvOdV0gIE</a>'
+                        },
+                        {
+                            id: 'alterar-senha-adm',
+                            titulo: 'Alterar senha de Adm',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. O teclado abrirá o menu → todas as teclas acenderão EXCETO a tecla 5<br>4. Pressione a tecla 0<br>5. Digite a nova senha de administrador<br>6. Pressione a tecla CONFIRMA (geralmente # ou a tecla de check)<br>7. Digite novamente a mesma senha<br>8. Pressione CONFIRMA novamente'
+                        },
+                        {
+                            id: 'adicionar-senha-usuario',
+                            titulo: 'Adicionar Senha de Usuário',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. O teclado abrirá o menu → todas as teclas acenderão EXCETO a tecla 5<br>4. Aperte a tecla 1<br>5. Digite a senha que deseja colocar<br>6. Pressione CONFIRMA<br>7. Digite novamente a senha<br>8. Pressione CONFIRMA novamente<br><br>Vídeo tutorial: <a href="https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s" target="_blank">https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s</a>'
+                        },
+                        {
+                            id: 'adicionar-senha-visitante',
+                            titulo: 'Adicionar Senha de Visitante',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. O teclado abrirá o menu → todas as teclas acenderão EXCETO a tecla 5<br>4. Aperte a tecla 4<br>5. Digite a senha que deseja colocar<br>6. Pressione CONFIRMA<br>7. Digite novamente a senha<br>8. Pressione CONFIRMA novamente<br><br>Vídeo tutorial: <a href="https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s" target="_blank">https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s</a>'
+                        },
+                        {
+                            id: 'adicionar-tag',
+                            titulo: 'Adicionar Tag',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. O teclado abrirá o menu → todas as teclas acenderão EXCETO a tecla 5<br>4. Aperte a tecla 2<br>5. Aproxime a tag da fechadura e aguarde o bip<br>6. Pressione CONFIRMA para salvar a tag<br><br>Vídeo tutorial: <a href="https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s" target="_blank">https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s</a>'
+                        },
+                        {
+                            id: 'adicionar-biometria',
+                            titulo: 'Adicionar Biometria',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. O teclado abrirá o menu → todas as teclas acenderão EXCETO a tecla 5<br>4. Aperte CONFIRMA para acessar a opção de biometria<br>5. Encoste o dedo 3 vezes na área de biometria até ouvir os bips<br>6. Pressione CONFIRMA para salvar a leitura<br><br>Vídeo tutorial: <a href="https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s" target="_blank">https://www.youtube.com/watch?v=XHm2DoU-2DY&t=1s</a>'
+                        },
+                        {
+                            id: 'continuar-cadastrando',
+                            titulo: 'Continuar cadastrando + senhas/tags/biometrias',
+                            texto: 'Para continuar cadastrando mais senhas, biometrias ou tags, NÃO pressione CONFIRMA para sair; em vez disso, prossiga cadastrando o próximo item até atingir a quantidade desejada ou o limite suportado pela fechadura'
+                        },
+                        {
+                            id: 'excluir-senha-usuario',
+                            titulo: 'Excluir Senha de Usuário',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. Aperte a tecla 3 para Excluir Usuário<br>4. Selecione o número da senha do usuário que deseja excluir (ordem de cadastro)<br>5. Digite a senha de administrador para confirmar<br>6. Usuário excluído com sucesso (a conta de admin NÃO pode ser excluída)'
+                        },
+                        {
+                            id: 'excluir-senha-visitante',
+                            titulo: 'Excluir Senha de Visitante',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. Aperte a tecla 6 para Excluir Visitante<br>4. Selecione o número da senha do visitante que deseja excluir (ordem de cadastro)<br>5. Digite a senha de administrador para confirmar'
+                        },
+                        {
+                            id: 'excluir-tag',
+                            titulo: 'Excluir Tag',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. Aperte a tecla 8 para Excluir Tag<br>4. Selecione o número da tag que deseja excluir (ordem de cadastro)<br>5. Digite a senha de administrador para confirmar'
+                        },
+                        {
+                            id: 'excluir-biometria',
+                            titulo: 'Excluir Biometria',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. Aperte o botão de ENGRENAGEM para acessar exclusão de biometria<br>4. Selecione o número da biometria que deseja excluir (ordem de cadastro)<br>5. Digite a senha de administrador para confirmar'
+                        },
+                        {
+                            id: 'excluir-todas-senhas-classe',
+                            titulo: 'Excluir Todas as Senhas de Uma Classe',
+                            texto: '1. Clique UMA VEZ no botão de cadastro<br>2. Digite a senha de administrador (padrão: 1234)<br>3. Selecione a opção correspondente à classe que deseja apagar (Usuário=3, Visitante=6, Tag=8 ou Biometria=Engrenagem)<br>4. Segure o botão de ENGRENAGEM até confirmar que todas foram excluídas'
                         }
                     ]
                 },
                 {
                     id: 'nao-perturbe',
                     titulo: 'Não Perturbe',
-                    texto: '',
+                    texto: 'Ativar (lado interno): segure o botão de abrir (lado de dentro da casa da fechadura).<br>Desativar (lado interno): segure o botão de abrir novamente.<br>Desativar por fora: digite a senha de administrador (padrão: 1234), segure o botão de ENGRENAGEM e pressione 9.',
                     subtopicos: []
                 },
                 {
                     id: 'menu-simples',
-                    titulo: 'Menu Simples',
-                    texto: '',
+                    titulo: 'Menu Externo',
+                    texto: '1. Digite a senha de administrador (padrão: 1234)<br>2. Segure o botão de ENGRENAGEM para entrar no Menu Externo<br>3. Pressione 3 para AUMENTAR o volume<br>4. Pressione 6 para DIMINUIR o volume<br>5. Pressione 4 para ATIVAR a tranca automática<br>6. Pressione 7 para DESATIVAR a tranca automática',
                     subtopicos: []
                 },
                 {
                     id: 'erros',
                     titulo: 'Erros',
                     texto: '',
-                    subtopicos: []
+                    subtopicos: [
+                        {
+                            id: 'erro-6',
+                            titulo: 'Erro 6 - Senha Incorreta',
+                            texto: 'Senha digitada não corresponde a nenhuma senha cadastrada.'
+                        },
+                        {
+                            id: 'erro-9',
+                            titulo: 'Erro 9 - Modo Não Perturbe Ativado',
+                            texto: 'A fechadura está em modo Não Perturbe. Desative pelo lado interno ou com senha de admin.'
+                        },
+                        {
+                            id: 'erro-5-0',
+                            titulo: 'Erro 5:0 - Modo de Pareamento',
+                            texto: 'Fechadura em modo de pareamento com o app.<br>Para desativar: remova a placa Zigbee ou realize o reset inverso (verificar manual do modelo).'
+                        },
+                        {
+                            id: 'erro-percurso',
+                            titulo: 'Erro X/4 - Erro de Percurso / Travamento',
+                            texto: 'Descrição: Código X ou 4 indica problema no percurso (movimento) ou travamento mecânico.<br><br>Verificação: tente destrancar a porta; se a porta destrancar e permanecer aberta, o erro pode continuar sendo reportado.<br><br>Travamento: verifique se há obstrução física impedindo o movimento de abrir/fechar (ex.: sujeira, folga, batente mal ajustado).<br><br>Correção: remova obstruções, alinhe batentes e componentes; em último caso, abra a fechadura e verifique a instalação e peças internas.'
+                        }
+                    ]
                 },
                 {
                     id: 'instalacao',
@@ -361,7 +437,7 @@ function carregarSegmentos() {
             if (topico.texto) {
                 const textoTopico = document.createElement('div');
                 textoTopico.className = 'topico-texto';
-                textoTopico.textContent = topico.texto;
+                textoTopico.innerHTML = topico.texto.replace(/\n/g, '<br>');
                 textoTopico.style.display = 'none';
                 topicoEl.appendChild(textoTopico);
             }
