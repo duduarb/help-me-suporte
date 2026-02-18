@@ -120,6 +120,11 @@ const dadosWiki = {
                             id: 'erro-percurso',
                             titulo: 'Erro X/4 - Erro de Percurso / Travamento',
                             texto: 'Descrição: Código X ou 4 indica problema no percurso (movimento) ou travamento mecânico.<br><br>Verificação: tente destrancar a porta; se a porta destrancar e permanecer aberta, o erro pode continuar sendo reportado.<br><br>Travamento: verifique se há obstrução física impedindo o movimento de abrir/fechar (ex.: sujeira, folga, batente mal ajustado).<br><br>Correção: remova obstruções, alinhe batentes e componentes; em último caso, abra a fechadura e verifique a instalação e peças internas.'
+                        },
+                        {
+                            id: 'biometria39',
+                            titulo: 'Erro de biometria | 3 e 9',
+                            texto: 'O erro indica falha na biometria sendo necessário realizar o reset da fechadura.<br>Verificar se aparece o erro 6 (senha incorreta) ao tentar acessar a fechadura com uma biometria não cadastrada, pois se aparecer o erro 3 e 0 ou se a fechadura não responder, possivelmente é um defeito no produto. Encaminhar para assistência técnica'
                         }
                     ]
                 },
@@ -131,13 +136,18 @@ const dadosWiki = {
                         {
                             id: 'hubica1001',
                             titulo: 'ICA 1001',
-                            texto: 'Guia de LEDs:<br>Piscando Roxo/Azul: Modo de pareamento com o aplicativo.<br>Piscando Roxo/Vermelho: Modo de adição de novos sensores/dispositivos.<br>Vermelho Fixo: Conectado à rede Wi-Fi.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!'
+                            texto: 'Guia de LEDs:<br>Piscando Roxo/Azul: Modo de pareamento com o aplicativo.<br>Piscando Roxo/Vermelho: Modo de adição de novos sensores/dispositivos.<br>Vermelho Fixo: Conectado à rede Wi-Fi.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!<br>Tutorial de instalação<br>Configuração e Instalação:https://www.youtube.com/watch?v=wNrZ0PU6rwU'
                         },
                         {
                             id: 'hubmca1001',
                             titulo: 'MCA 1001',
-                            texto: 'Guia de LEDs:<br>Piscando vermelho: Equipamento padrão de fábrica, sem internet ou indicando disparo de sensor.<br>Piscando azul: Aguardando conexão Wi-Fi ou adição de novos sensores/dispositivos.<br>Azul fixo: Conectado à conta Mibo Smart e funcionando normalmente.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!'
-                        }
+                            texto: 'Guia de LEDs:<br>Piscando vermelho: Equipamento padrão de fábrica, sem internet ou indicando disparo de sensor.<br>Piscando azul: Aguardando conexão Wi-Fi ou adição de novos sensores/dispositivos.<br>Azul fixo: Conectado à conta Mibo Smart e funcionando normalmente.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!<br>Tutorial de instalação<br>Configuração e Instalação:https://www.youtube.com/watch?v=bsE3soo7nAw'
+                        },
+                        {
+                            id: 'hubmca1002',
+                            titulo: 'MCA 1002',
+                            texto: 'Guia de LEDs:<br>Piscando vermelho: Equipamento padrão de fábrica, sem internet ou indicando disparo de sensor.<br>Piscando azul: Aguardando conexão Wi-Fi ou adição de novos sensores/dispositivos.<br>Azul fixo: Conectado à conta Mibo Smart e funcionando normalmente.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!<br>Tutorial de instalação<br>Configuração e Instalação:https://www.youtube.com/watch?v=bsE3soo7nAw'
+                        },
                     ]
                 }
             ]
