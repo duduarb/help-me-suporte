@@ -131,7 +131,7 @@ const dadosWiki = {
                         {
                             id: 'hubica1001',
                             titulo: 'ICA 1001',
-                            texto: 'Guia de LEDs:<b>Piscando Roxo/Azul: Modo de pareamento com o aplicativo.<br>Piscando Roxo/Vermelho: Modo de adição de novos sensores/dispositivos.<br>Vermelho Fixo: Conectado à rede Wi-Fi.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!'
+                            texto: 'Guia de LEDs:<br>Piscando Roxo/Azul: Modo de pareamento com o aplicativo.<br>Piscando Roxo/Vermelho: Modo de adição de novos sensores/dispositivos.<br>Vermelho Fixo: Conectado à rede Wi-Fi.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!'
                         },
                         {
                             id: 'hubmca1001',
