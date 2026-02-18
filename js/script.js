@@ -131,12 +131,12 @@ const dadosWiki = {
                         {
                             id: 'hubica1001',
                             titulo: 'ICA 1001',
-                            texto: 'Guia de LEDs:<b>Piscando Roxo/Azul: Modo de pareamento com o aplicativo.<br>Piscando Roxo/Vermelho: Modo de adição de novos sensores/dispositivos.<br>Vermelho Fixo: Conectado à rede Wi-Fi.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.'
+                            texto: 'Guia de LEDs:<b>Piscando Roxo/Azul: Modo de pareamento com o aplicativo.<br>Piscando Roxo/Vermelho: Modo de adição de novos sensores/dispositivos.<br>Vermelho Fixo: Conectado à rede Wi-Fi.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!'
                         },
                         {
                             id: 'hubmca1001',
                             titulo: 'MCA 1001',
-                            texto: 'Guia de LEDs:<br>Piscando vermelho: Equipamento padrão de fábrica, sem internet ou indicando disparo de sensor.<br>Piscando azul: Aguardando conexão Wi-Fi ou adição de novos sensores/dispositivos.<br>Azul fixo: Conectado à conta Mibo Smart e funcionando normalmente.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br>'
+                            texto: 'Guia de LEDs:<br>Piscando vermelho: Equipamento padrão de fábrica, sem internet ou indicando disparo de sensor.<br>Piscando azul: Aguardando conexão Wi-Fi ou adição de novos sensores/dispositivos.<br>Azul fixo: Conectado à conta Mibo Smart e funcionando normalmente.<br><br>Reset:<br>Pressione o botão de reset por 10 segundos.<br><br>Só se conecta a rede 2.4ghz!'
                         }
                     ]
                 }
