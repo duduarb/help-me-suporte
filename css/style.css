@@ -1,7 +1,5 @@
-/* 
-==================================================
-RESET BASICO - Tira todas as configuracoes padrao
-que o navegador coloca sozinho
+/* ==================================================
+RESET & VARIÁVEIS - PADRÃO INTELBRAS
 ==================================================
 */
 * {
@@ -10,28 +8,18 @@ que o navegador coloca sozinho
     box-sizing: border-box;
 }
 
-/*
-==================================================
-CORES DA INTELBRAS - Aqui defino as cores principais
-que vou usar no site inteiro
-==================================================
-*/
 :root {
-    --verde-intelbras: #00a859;  /* Esse verde e a cara da Intelbras */
-    --branco: #ffffff;           /* Branco pra fundo quando for modo claro */
-    --preto: #1a1a1a;           /* Preto pra fundo no modo escuro */
-    --cinza-claro: #f5f5f5;      /* Cinza bem clarinho pra fundo de cards */
-    --cinza-medio: #e0e0e0;      /* Cinza pra bordas e separar coisas */
-    --texto-escuro: #333333;     /* Cor do texto quando o fundo e claro */
-    --texto-claro: #f0f0f0;      /* Cor do texto quando o fundo e escuro */
-    --sombra: rgba(0, 0, 0, 0.1); /* Sombra leve pra dar profundidade */
+    --verde-intelbras: #00a859;
+    --verde-escuro: #008c4a;
+    --branco: #ffffff;
+    --preto: #1a1a1a;
+    --cinza-claro: #f5f5f5;
+    --cinza-medio: #e0e0e0;
+    --texto-escuro: #333333;
+    --texto-claro: #f0f0f0;
+    --sombra: rgba(0, 0, 0, 0.1);
 }
 
-/*
-==================================================
-ESTILO GERAL DA PAGINA - Configuracao basica do body
-==================================================
-*/
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--branco);
@@ -43,7 +31,6 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* MODO ESCURO - Quando a classe dark-mode for adicionada ao body */
 body.dark-mode {
     background-color: var(--preto);
     color: var(--texto-claro);
@@ -51,7 +38,7 @@ body.dark-mode {
 
 /*
 ==================================================
-CABECALHO - Parte verde la em cima com titulo e pesquisa
+CABECALHO
 ==================================================
 */
 .cabecalho {
@@ -64,9 +51,6 @@ CABECALHO - Parte verde la em cima com titulo e pesquisa
     box-shadow: 0 2px 4px var(--sombra);
 }
 
-/*
-Ajuste do cabecalho pra telas maiores (tablet pra cima)
-*/
 @media (min-width: 768px) {
     .cabecalho {
         flex-direction: row;
@@ -76,23 +60,15 @@ Ajuste do cabecalho pra telas maiores (tablet pra cima)
     }
 }
 
-/*
-Titulo "Wiki Suporte Consumo" do lado esquerdo
-*/
 .cabecalho-esquerda h1 {
     font-size: 1.2rem;
     white-space: nowrap;
 }
 
 @media (min-width: 768px) {
-    .cabecalho-esquerda h1 {
-        font-size: 1.5rem;
-    }
+    .cabecalho-esquerda h1 { font-size: 1.5rem; }
 }
 
-/*
-Area central onde fica a barra de pesquisa
-*/
 .cabecalho-centro {
     flex: 1;
     max-width: 600px;
@@ -100,9 +76,6 @@ Area central onde fica a barra de pesquisa
     width: 100%;
 }
 
-/*
-A barra de pesquisa em si
-*/
 .barra-pesquisa {
     width: 100%;
     padding: 0.8rem 1rem;
@@ -113,18 +86,12 @@ A barra de pesquisa em si
     transition: all 0.3s ease;
 }
 
-/*
-Quando clica na barra de pesquisa ela fica com uma sombra verde
-*/
 .barra-pesquisa:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
     background-color: var(--branco);
 }
 
-/*
-Botao de sol/lua pra trocar o tema
-*/
 .botao-tema {
     background: none;
     border: none;
@@ -138,16 +105,11 @@ Botao de sol/lua pra trocar o tema
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s ease;
-}
-
-.botao-tema:hover {
-    background-color: rgba(255, 255, 255, 0.2);
 }
 
 /*
 ==================================================
-CONTEUDO PRINCIPAL - Area do meio onde vao os segmentos
+CONTEÚDO E CARDS
 ==================================================
 */
 .conteudo-principal {
@@ -158,122 +120,15 @@ CONTEUDO PRINCIPAL - Area do meio onde vao os segmentos
     width: 100%;
 }
 
-/*
-Area que mostra os resultados da pesquisa
-*/
-.resultados-pesquisa {
-    background-color: var(--cinza-claro);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    border: 1px solid var(--cinza-medio);
-}
-
-/* Ajuste da cor no modo escuro para area de resultados */
-body.dark-mode .resultados-pesquisa {
-    background-color: #2a2a2a;
-    border-color: #444;
-    color: var(--texto-claro);
-}
-
-/*
-Container que segura todos os segmentos (Redes, Fechaduras...)
-*/
-.segmentos-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-/*
-==================================================
-RODAPE - Parte de baixo do site com meus links
-==================================================
-*/
-.rodape {
-    background-color: var(--verde-intelbras);
-    color: var(--branco);
-    padding: 1.5rem 1rem;  /* Diminui 25% comparado com antes (era 2rem) */
-    margin-top: auto;
-}
-
-.rodape-conteudo {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.8rem;  /* Diminui o espaco entre os itens */
-    text-align: center;
-}
-
-/*
-Em telas maiores, o texto fica de um lado e os icones do outro
-*/
-@media (min-width: 768px) {
-    .rodape-conteudo {
-        flex-direction: row;
-        justify-content: space-between;
-        text-align: left;
-    }
-}
-
-/*
-Container pros icones do GitHub e LinkedIn
-*/
-.rodape-links {
-    display: flex;
-    gap: 1.2rem;  /* Diminui um pouco o espaco entre os icones */
-    align-items: center;
-}
-
-/*
-Cada link do rodape (icone clicavel)
-*/
-.rodape-link {
-    color: var(--branco);
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    display: inline-block;
-}
-
-.rodape-link:hover {
-    transform: scale(1.1);
-    opacity: 0.9;
-}
-
-/*
-Os SVGs (icones) ficam do tamanho que eu definir e herdam a cor
-*/
-.rodape-link svg {
-    display: block;
-    fill: currentColor;
-    width: 24px;  /* Diminui o tamanho dos icones pra combinar com o rodape menor */
-    height: 24px;
-}
-
-/*
-==================================================
-ESTILOS DOS SEGMENTOS - Cards principais
-==================================================
-*/
-
-/* Card de cada segmento (Redes, Fechaduras, etc) */
 .segmento {
     background-color: var(--branco);
     border-radius: 12px;
     box-shadow: 0 4px 12px var(--sombra);
     margin-bottom: 1.5rem;
     overflow: hidden;
-    transition: all 0.3s ease;
     border: 1px solid var(--cinza-medio);
 }
 
-/* Quando o segmento estiver aberto, muda levemente a sombra */
-.segmento.aberto {
-    box-shadow: 0 6px 16px var(--sombra);
-}
-
-/* Titulo do segmento - tem clique pra abrir/fechar */
 .segmento-titulo {
     background-color: var(--verde-intelbras);
     color: var(--branco);
@@ -281,419 +136,169 @@ ESTILOS DOS SEGMENTOS - Cards principais
     font-size: 1.3rem;
     font-weight: 600;
     cursor: pointer;
-    user-select: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.3s ease;
-    margin: 0;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Efeito ao passar o mouse no titulo do segmento */
-.segmento-titulo:hover {
-    background-color: #008c4a; /* Verde um pouco mais escuro */
-}
-
-/* Seta indicando que pode expandir */
-.segmento-titulo::after {
-    content: '▼';
-    font-size: 0.9rem;
-    transition: transform 0.3s ease;
-    opacity: 0.9;
-}
-
-/* Quando aberto, a seta gira */
-.segmento.aberto .segmento-titulo::after {
-    transform: rotate(180deg);
-}
-
-/* Container que agrupa os topicos dentro do segmento */
-.topicos-container {
-    padding: 1.2rem;
-    background-color: var(--cinza-claro);
-    transition: all 0.3s ease;
-}
-
-/*
-==================================================
-ESTILOS DOS TOPICOS - Cards secundarios
-==================================================
-*/
-
-/* Card de cada topico (ex: Switches dentro de Redes) */
-.topico {
-    background-color: var(--branco);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    border: 1px solid var(--cinza-medio);
-    overflow: hidden;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px var(--sombra);
-}
-
-/* Efeito leve ao passar o mouse no card do topico */
-.topico:hover {
-    box-shadow: 0 4px 8px var(--sombra);
-}
-
-/* Titulo do topico - tambem clicavel */
-.topico-titulo {
-    background-color: #e8e8e8;
+/* TÍTULOS COM LIXEIRA NA DIREITA */
+.topico-titulo, .subtopico-titulo {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    cursor: pointer;
     padding: 1rem 1.2rem;
-    font-size: 1.1rem;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background-color 0.2s ease;
-    margin: 0;
-    border-bottom: 1px solid transparent;
-}
-
-.topico-titulo:hover {
-    background-color: #d8d8d8;
-}
-
-/* Quando o topico esta aberto, o titulo tem borda */
-.topico.aberto .topico-titulo {
-    border-bottom-color: var(--cinza-medio);
-}
-
-/* Seta do topico */
-.topico-titulo::after {
-    content: '▼';
-    font-size: 0.8rem;
-    transition: transform 0.3s ease;
-    opacity: 0.7;
-}
-
-.topico.aberto .topico-titulo::after {
-    transform: rotate(180deg);
-}
-
-/* Texto explicativo do topico */
-.topico-texto {
-    padding: 1.2rem;
-    background-color: var(--branco);
-    line-height: 1.6;
-    color: var(--texto-escuro);
-    font-size: 0.95rem;
-    border-top: 1px solid var(--cinza-medio);
-}
-
-/*
-==================================================
-ESTILOS DOS SUBTOPICOS - Nivel mais especifico
-==================================================
-*/
-
-/* Container que agrupa os subtopicos */
-.subtopicos-container {
-    padding: 0.8rem;
-    background-color: #fafafa;
-    border-top: 1px solid var(--cinza-medio);
-}
-
-/* Card de cada subtopico */
-.subtopico {
-    background-color: var(--branco);
-    border-radius: 6px;
-    margin-bottom: 0.8rem;
-    border: 1px solid var(--cinza-medio);
-    overflow: hidden;
-    transition: all 0.2s ease;
-}
-
-.subtopico:last-child {
-    margin-bottom: 0;
-}
-
-/* Titulo do subtopico - tambem clicavel */
-.subtopico-titulo {
     background-color: #f0f0f0;
-    padding: 0.8rem 1rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background-color 0.2s ease;
-    margin: 0;
+    transition: background 0.2s;
 }
 
-.subtopico-titulo:hover {
-    background-color: #e0e0e0;
+/* Remove setas que atrapalham a lixeira */
+.topico-titulo::after, .subtopico-titulo::after, .segmento-titulo::after {
+    display: none !important;
 }
 
-/* Seta do subtopico (menor que as outras) */
-.subtopico-titulo::after {
-    content: '▼';
-    font-size: 0.7rem;
-    transition: transform 0.3s ease;
+.btn-excluir {
+    margin-left: auto;
+    opacity: 0;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+}
+
+.topico-titulo:hover .btn-excluir, .subtopico-titulo:hover .btn-excluir {
     opacity: 0.6;
 }
 
-.subtopico.aberto .subtopico-titulo::after {
-    transform: rotate(180deg);
-}
-
-/* Texto explicativo do subtopico */
-.subtopico-texto {
-    padding: 1rem;
-    background-color: var(--branco);
-    line-height: 1.6;
-    color: var(--texto-escuro);
-    font-size: 0.9rem;
-    border-top: 1px solid var(--cinza-medio);
+.btn-excluir:hover {
+    opacity: 1 !important;
+    color: #ff4d4d !important;
+    transform: scale(1.2);
 }
 
 /*
 ==================================================
-MODO ESCURO - Cores para o tema noturno
+RESULTADOS DA PESQUISA (CORRIGIDO PARA MODO ESCURO)
 ==================================================
 */
-
-body.dark-mode .segmento {
-    background-color: #2a2a2a;
-    border-color: #444;
+.resultados-pesquisa {
+    background-color: var(--branco); /* Fundo sempre branco no card de resultado */
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 2px solid var(--verde-intelbras);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    animation: slideDown 0.3s ease;
 }
 
-body.dark-mode .topicos-container {
-    background-color: #222;
-}
-
-body.dark-mode .topico {
-    background-color: #333;
-    border-color: #555;
-}
-
-body.dark-mode .topico-titulo {
-    background-color: #3a3a3a;
-    color: var(--texto-claro);
-    border-bottom-color: #555;
-}
-
-body.dark-mode .topico-titulo:hover {
-    background-color: #444;
-}
-
-body.dark-mode .topico-texto {
-    background-color: #333;
-    color: #ddd;
-    border-top-color: #555;
-}
-
-body.dark-mode .subtopicos-container {
-    background-color: #2a2a2a;
-}
-
-body.dark-mode .subtopico {
-    background-color: #3a3a3a;
-    border-color: #555;
-}
-
-body.dark-mode .subtopico-titulo {
-    background-color: #444;
-    color: var(--texto-claro);
-}
-
-body.dark-mode .subtopico-titulo:hover {
-    background-color: #4a4a4a;
-}
-
-body.dark-mode .subtopico-texto {
-    background-color: #3a3a3a;
-    color: #ccc;
-    border-top-color: #555;
-}
-
-
-/* ajustes para tablets */
-@media (max-width: 768px) {
-    .conteudo-principal {
-        margin: 1.5rem auto;
-        padding: 0 1rem;
-    }
-    
-    .segmento-titulo {
-        padding: 1rem 1.2rem;
-        font-size: 1.2rem;
-    }
-    
-    .topico-titulo {
-        padding: 0.8rem 1rem;
-        font-size: 1rem;
-    }
-    
-    .subtopico-titulo {
-        padding: 0.7rem 0.9rem;
-        font-size: 0.95rem;
-    }
-    
-    .topico-texto,
-    .subtopico-texto {
-        padding: 1rem;
-        font-size: 0.9rem;
-    }
-}
-
-/* ajuste para celu */
-@media (max-width: 480px) {
-    .conteudo-principal {
-        margin: 1rem auto;
-        padding: 0 0.8rem;
-    }
-    
-    .segmento {
-        margin-bottom: 1rem;
-    }
-    
-    .segmento-titulo {
-        padding: 0.8rem 1rem;
-        font-size: 1.1rem;
-    }
-    
-    .topicos-container {
-        padding: 0.8rem;
-    }
-    
-    .topico-titulo {
-        padding: 0.7rem 0.9rem;
-        font-size: 0.95rem;
-    }
-    
-    .topico-texto {
-        padding: 0.9rem;
-        font-size: 0.85rem;
-    }
-    
-    .subtopicos-container {
-        padding: 0.5rem;
-    }
-    
-    .subtopico-titulo {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.9rem;
-    }
-    
-    .subtopico-texto {
-        padding: 0.8rem;
-        font-size: 0.8rem;
-    }
-    
-    /* Setas um pouco menores no celular */
-    .segmento-titulo::after,
-    .topico-titulo::after,
-    .subtopico-titulo::after {
-        font-size: 0.7rem;
-    }
-}
-
-/* ajustes para telas pequenas */
-@media (max-width: 320px) {
-    .segmento-titulo {
-        padding: 0.7rem 0.8rem;
-        font-size: 1rem;
-    }
-    
-    .topico-titulo {
-        padding: 0.6rem 0.7rem;
-    }
-}
-
-/*
-==================================================
-ESTILOS DA PESQUISA - Resultados e listas
-==================================================
-*/
-
+/* Força cores escuras nos textos da pesquisa para garantir leitura no card branco */
 .resultados-pesquisa h3 {
+    color: #1a1a1a !important;
     margin-bottom: 1rem;
-    color: var(--texto-escuro);
-    font-size: 1.2rem;
-}
-
-body.dark-mode .resultados-pesquisa h3 {
-    color: var(--texto-claro);
-}
-
-.resultados-lista {
-    list-style: none;
-    padding: 0;
-    margin: 0;
 }
 
 .resultado-item {
     padding: 1rem;
     border: 1px solid var(--cinza-medio);
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 0.8rem;
-    background-color: var(--branco);
+    background-color: var(--cinza-claro);
+    color: #1a1a1a !important; 
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.resultado-item:hover {
-    background-color: var(--cinza-claro);
-    transform: translateX(5px);
-    box-shadow: 0 2px 8px var(--sombra);
+.resultado-item strong {
+    color: var(--verde-intelbras) !important;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.resultado-item small {
+    color: #555 !important;
+    font-weight: 600;
+}
+
+.resultado-preview {
+    color: #444 !important;
+    font-style: italic;
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 5px;
+}
+
+/* No modo escuro, mantemos o card de pesquisa com cores legíveis */
+body.dark-mode .resultados-pesquisa {
+    background-color: #2a2a2a; 
+}
+
+body.dark-mode .resultados-pesquisa h3 {
+    color: var(--branco) !important;
 }
 
 body.dark-mode .resultado-item {
     background-color: #333;
-    border-color: #555;
-    color: var(--texto-claro);
+    color: #eee !important;
+    border-color: #444;
 }
 
-body.dark-mode .resultado-item:hover {
-    background-color: #3a3a3a;
+body.dark-mode .resultado-item small { color: #aaa !important; }
+body.dark-mode .resultado-preview { color: #bbb !important; }
+
+/*
+==================================================
+RODAPÉ SLIM E ÍCONES BRANCOS
+==================================================
+*/
+.rodape {
+    background-color: var(--verde-intelbras);
+    color: var(--branco);
+    padding: 0.6rem 2rem;
+    margin-top: auto;
 }
 
-.resultado-item strong {
-    color: var(--verde-intelbras);
-    font-size: 1rem;
+.rodape-conteudo {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.resultado-item small {
+.rodape-links {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+}
+
+/* ÍCONES DO GITHUB E LINKEDIN EM BRANCO */
+.rodape-link svg {
     display: block;
-    color: #666;
-    font-size: 0.8rem;
-    margin: 0.3rem 0;
+    fill: #ffffff !important; 
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
 }
 
-body.dark-mode .resultado-item small {
-    color: #aaa;
+.rodape-link:hover svg {
+    transform: scale(1.2);
 }
 
-.resultado-preview {
-    font-size: 0.9rem;
-    color: #444;
-    display: block;
-    margin-top: 0.3rem;
-    font-style: italic;
-}
-
-body.dark-mode .resultado-preview {
-    color: #bbb;
-}
-
-/* animacao pra quando aparece/desaparece */
-.resultados-pesquisa {
-    animation: slideDown 0.3s ease;
-}
+/*
+==================================================
+MODO ESCURO - GERAL
+==================================================
+*/
+body.dark-mode .segmento { background-color: #2a2a2a; border-color: #444; }
+body.dark-mode .topicos-container { background-color: #222; }
+body.dark-mode .topico-titulo { background-color: #3a3a3a; color: var(--texto-claro); }
+body.dark-mode .subtopico-titulo { background-color: #444; color: var(--texto-claro); }
+body.dark-mode .topico-texto, 
+body.dark-mode .subtopico-texto { background-color: #2a2a2a; color: #ccc; }
 
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+    .rodape-conteudo { flex-direction: column; gap: 0.5rem; font-size: 0.8rem; }
 }
