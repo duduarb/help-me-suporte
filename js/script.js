@@ -1,4 +1,3 @@
-// ADICIONAR CONTEÚDOS DO SITE
 // Configuração do Supabase
 const SUPABASE_URL = 'https://mrzhseelzlfrdhdrmtcy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dErYTyFdVx6V5v4f-1DhGw_r08SIYey';
@@ -6,7 +5,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dadosWiki = { segmentos: [] };
 
-// FUNÇÃO AUXILIAR PARA VALIDAR SENHA NA VERCEL (A MÁGICA DA SEGURANÇA)
+// FUNÇÃO AUXILIAR PARA VALIDAR SENHA NA VERCEL
 async function validarSenhaVercel(senhaDigitada) {
     try {
         const resposta = await fetch('/api/validar-senha', {
@@ -22,7 +21,7 @@ async function validarSenhaVercel(senhaDigitada) {
     }
 }
 
-// NOVIDADE: FUNÇÃO PARA IDENTIFICAR LINKS E TORNAR CLICÁVEIS
+// TORNAR LINKS CLICÁVEIS
 function formatarLinks(texto) {
     if (!texto) return '';
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -31,7 +30,7 @@ function formatarLinks(texto) {
     });
 }
 
-// FUNÇÃO PARA BUSCAR DO BANCO
+// BUSCAR DO BANCO
 async function carregarDados() {
     const { data, error } = await _supabase.from('wiki_conteudos').select('*');
     
@@ -73,16 +72,12 @@ async function carregarDados() {
     }
 }
 
-// FUNÇÃO PARA SALVAR NO BANCO (ATUALIZADA COM SEGURANÇA)
+// SALVAR NO BANCO
 async function salvarNoBanco() {
     const senha = document.getElementById('chaveMestra').value;
-    
-    // Chama a API da Vercel em vez de conferir aqui
     const autorizado = await validarSenhaVercel(senha);
     
-    if (!autorizado) {
-        return alert("Senha incorreta! Você não tem permissão para salvar.");
-    }
+    if (!autorizado) return alert("Senha incorreta!");
 
     const novoItem = {
         segmento: document.getElementById('addSegmento').value,
@@ -101,49 +96,61 @@ async function salvarNoBanco() {
     }
 }
 
-// FUNÇÃO PARA EXCLUIR DADOS (ATUALIZADA COM SEGURANÇA)
+// --- NOVIDADE: FUNÇÕES DE EDIÇÃO ---
+
+function prepararEdicao(id, textoAtual) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editTexto').value = textoAtual;
+    document.getElementById('modalEditar').style.display = 'flex';
+}
+
+async function confirmarEdicao() {
+    const id = document.getElementById('editId').value;
+    const novoTexto = document.getElementById('editTexto').value;
+    const senha = document.getElementById('editSenha').value;
+
+    if (!senha) return alert("Digite a senha para confirmar.");
+
+    const autorizado = await validarSenhaVercel(senha);
+    if (!autorizado) return alert("Senha incorreta!");
+
+    const { error } = await _supabase
+        .from('wiki_conteudos')
+        .update({ texto: novoTexto })
+        .eq('id', id);
+
+    if (!error) {
+        alert("Conteúdo atualizado!");
+        location.reload();
+    } else {
+        alert("Erro ao atualizar: " + error.message);
+    }
+}
+
+// --- FIM DAS FUNÇÕES DE EDIÇÃO ---
+
+// EXCLUIR DADOS
 async function excluirDoBanco(id) {
     const senha = prompt("Digite a senha mestra para confirmar a exclusão:");
-    
     if (!senha) return;
 
-    // Chama a API da Vercel em vez de conferir aqui
     const autorizado = await validarSenhaVercel(senha);
+    if (!autorizado) return alert("Senha incorreta!");
 
-    if (!autorizado) {
-        alert("Senha incorreta! Operação cancelada.");
-        return;
-    }
-
-    if (confirm("Tem certeza que deseja apagar esse conteúdo permanentemente?")) {
-        const { error } = await _supabase
-            .from('wiki_conteudos')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            console.error("Erro ao deletar:", error);
-            alert("Erro ao excluir.");
-        } else {
-            alert("Conteúdo removido com sucesso!");
-            location.reload();
-        }
+    if (confirm("Tem certeza que deseja apagar esse conteúdo?")) {
+        const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', id);
+        if (!error) { location.reload(); }
     }
 }
 
-// FUNÇÃO PARA REMOVER ACENTOS
+// PESQUISA E UTILITÁRIOS
 function normalizarTexto(texto) {
     if (!texto) return '';
-    return texto
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
+    return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-// FUNÇÃO DE PESQUISA
 function pesquisar(termo) {
     if (!termo || termo.trim() === '') return [];
-    
     const termoNormalizado = normalizarTexto(termo);
     const resultados = [];
     
@@ -151,7 +158,6 @@ function pesquisar(termo) {
         if (normalizarTexto(segmento.titulo).includes(termoNormalizado)) {
             resultados.push({ tipo: 'segmento', segmentoId: segmento.id, titulo: segmento.titulo, texto: segmento.titulo, caminho: segmento.titulo });
         }
-        
         segmento.topicos.forEach(topico => {
             if (normalizarTexto(topico.titulo).includes(termoNormalizado)) {
                 resultados.push({ tipo: 'topico', segmentoId: segmento.id, topicoId: topico.id, titulo: topico.titulo, texto: topico.texto || '', caminho: `${segmento.titulo} > ${topico.titulo}` });
@@ -193,9 +199,7 @@ function mostrarResultados(resultados, termo) {
     segmentosContainer.style.display = 'none';
     
     document.querySelectorAll('.resultado-item').forEach(item => {
-        item.addEventListener('click', function() {
-            navegarParaResultado(resultados[this.dataset.index]);
-        });
+        item.addEventListener('click', function() { navegarParaResultado(resultados[this.dataset.index]); });
     });
 }
 
@@ -203,10 +207,8 @@ function navegarParaResultado(resultado) {
     const areaResultados = document.getElementById('resultadosPesquisa');
     const segmentosContainer = document.getElementById('segmentosContainer');
     segmentosContainer.style.display = 'block';
-    
     const segmentoEl = document.querySelector(`.segmento[data-id="${resultado.segmentoId}"]`);
     if (!segmentoEl) return;
-    
     const topicosContainer = segmentoEl.querySelector('.topicos-container');
     segmentoEl.classList.add('aberto');
     topicosContainer.style.display = 'block';
@@ -219,7 +221,6 @@ function navegarParaResultado(resultado) {
             const sub = topicoEl.querySelector('.subtopicos-container');
             if (txt) txt.style.display = 'block';
             if (sub) sub.style.display = 'block';
-            
             if (resultado.subtopicoId) {
                 const subEl = topicoEl.querySelector(`.subtopico[data-id="${resultado.subtopicoId}"]`);
                 if (subEl) {
@@ -256,7 +257,7 @@ function carregarTemaSalvo() {
     }
 }
 
-// FUNÇÃO PARA CARREGAR OS SEGMENTOS 
+// CARREGAR OS SEGMENTOS NO HTML
 function carregarSegmentos() {
     const container = document.getElementById('segmentosContainer');
     if (!container) return;
@@ -288,12 +289,25 @@ function carregarSegmentos() {
             spanTitulo.textContent = topico.titulo;
             tituloTopico.appendChild(spanTitulo);
 
+            // BOTOES DE AÇÃO (EDITAR E EXCLUIR)
+            const botoes = document.createElement('div');
+            botoes.style.display = 'inline-block';
+            botoes.style.marginLeft = '10px';
+
+            const btnEditar = document.createElement('span');
+            btnEditar.innerHTML = '✏️';
+            btnEditar.className = 'btn-editar';
+            btnEditar.style.marginRight = '8px';
+            btnEditar.onclick = (e) => { e.stopPropagation(); prepararEdicao(topico.id_banco, topico.texto); };
+            botoes.appendChild(btnEditar);
+
             const btnExcluir = document.createElement('span');
             btnExcluir.innerHTML = '🗑️';
             btnExcluir.className = 'btn-excluir'; 
             btnExcluir.onclick = (e) => { e.stopPropagation(); excluirDoBanco(topico.id_banco); };
-            tituloTopico.appendChild(btnExcluir);
+            botoes.appendChild(btnExcluir);
 
+            tituloTopico.appendChild(botoes);
             topicoEl.appendChild(tituloTopico);
             
             if (topico.texto) {
@@ -321,12 +335,24 @@ function carregarSegmentos() {
                     spanSub.textContent = subtopico.titulo;
                     tituloSubtopico.appendChild(spanSub);
 
+                    const botoesSub = document.createElement('div');
+                    botoesSub.style.display = 'inline-block';
+                    botoesSub.style.marginLeft = '10px';
+
+                    const btnEditarSub = document.createElement('span');
+                    btnEditarSub.innerHTML = '✏️';
+                    btnEditarSub.className = 'btn-editar';
+                    btnEditarSub.style.marginRight = '8px';
+                    btnEditarSub.onclick = (e) => { e.stopPropagation(); prepararEdicao(subtopico.id_banco, subtopico.texto); };
+                    botoesSub.appendChild(btnEditarSub);
+
                     const btnExcluirSub = document.createElement('span');
                     btnExcluirSub.innerHTML = '🗑️';
                     btnExcluirSub.className = 'btn-excluir';
                     btnExcluirSub.onclick = (e) => { e.stopPropagation(); excluirDoBanco(subtopico.id_banco); };
-                    tituloSubtopico.appendChild(btnExcluirSub);
+                    botoesSub.appendChild(btnExcluirSub);
 
+                    tituloSubtopico.appendChild(botoesSub);
                     subtopicoEl.appendChild(tituloSubtopico);
                     
                     const textoSubtopico = document.createElement('div');
