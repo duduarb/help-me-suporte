@@ -1,11 +1,11 @@
-// Configuração do Supabase
+// supabase
 const SUPABASE_URL = 'https://mrzhseelzlfrdhdrmtcy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dErYTyFdVx6V5v4f-1DhGw_r08SIYey';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dadosWiki = { segmentos: [] };
 
-// FUNÇÃO AUXILIAR PARA VALIDAR SENHA NA VERCEL
+// função para validar senha no vercel 
 async function validarSenhaVercel(senhaDigitada) {
     try {
         const resposta = await fetch('/api/validar-senha', {
@@ -21,7 +21,7 @@ async function validarSenhaVercel(senhaDigitada) {
     }
 }
 
-// TORNAR LINKS CLICÁVEIS
+// deixar os links clicáveis
 function formatarLinks(texto) {
     if (!texto) return '';
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -30,7 +30,7 @@ function formatarLinks(texto) {
     });
 }
 
-// BUSCAR DO BANCO
+// busca no banco
 async function carregarDados() {
     const { data, error } = await _supabase.from('wiki_conteudos').select('*');
     
@@ -72,7 +72,7 @@ async function carregarDados() {
     }
 }
 
-// SALVAR NO BANCO
+// salvar no banco
 async function salvarNoBanco() {
     const senha = document.getElementById('chaveMestra').value;
     const autorizado = await validarSenhaVercel(senha);
@@ -96,7 +96,7 @@ async function salvarNoBanco() {
     }
 }
 
-// --- NOVIDADE: FUNÇÕES DE EDIÇÃO ---
+// função de edição
 
 function prepararEdicao(id, textoAtual) {
     document.getElementById('editId').value = id;
@@ -127,9 +127,7 @@ async function confirmarEdicao() {
     }
 }
 
-// --- FIM DAS FUNÇÕES DE EDIÇÃO ---
-
-// EXCLUIR DADOS
+// excluir dados do banco
 async function excluirDoBanco(id) {
     const senha = prompt("Digite a senha mestra para confirmar a exclusão:");
     if (!senha) return;
@@ -143,7 +141,7 @@ async function excluirDoBanco(id) {
     }
 }
 
-// PESQUISA E UTILITÁRIOS
+// pesquisa e navegação
 function normalizarTexto(texto) {
     if (!texto) return '';
     return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -257,7 +255,7 @@ function carregarTemaSalvo() {
     }
 }
 
-// CARREGAR OS SEGMENTOS NO HTML
+// carregar segmentos e configurar interações
 function carregarSegmentos() {
     const container = document.getElementById('segmentosContainer');
     if (!container) return;
@@ -289,7 +287,6 @@ function carregarSegmentos() {
             spanTitulo.textContent = topico.titulo;
             tituloTopico.appendChild(spanTitulo);
 
-            // BOTOES DE AÇÃO (EDITAR E EXCLUIR)
             const botoes = document.createElement('div');
             botoes.style.display = 'inline-block';
             botoes.style.marginLeft = '10px';

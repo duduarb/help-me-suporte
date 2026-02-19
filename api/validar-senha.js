@@ -1,5 +1,4 @@
 export default function handler(req, res) {
-  // O valor da senha não fica aqui, ele fica no cofre da Vercel
   const SENHA_MESTRA = process.env.ADMIN_PASSWORD;
 
   if (req.method === 'POST') {
