@@ -6,6 +6,22 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dadosWiki = { segmentos: [] };
 
+// FUNÇÃO AUXILIAR PARA VALIDAR SENHA NA VERCEL (A MÁGICA DA SEGURANÇA)
+async function validarSenhaVercel(senhaDigitada) {
+    try {
+        const resposta = await fetch('/api/validar-senha', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ senhaDigitada })
+        });
+        const resultado = await resposta.json();
+        return resultado.autorizado;
+    } catch (error) {
+        console.error("Erro ao validar senha:", error);
+        return false;
+    }
+}
+
 // NOVIDADE: FUNÇÃO PARA IDENTIFICAR LINKS E TORNAR CLICÁVEIS
 function formatarLinks(texto) {
     if (!texto) return '';
@@ -57,10 +73,16 @@ async function carregarDados() {
     }
 }
 
-// FUNÇÃO PARA SALVAR NO BANCO
+// FUNÇÃO PARA SALVAR NO BANCO (ATUALIZADA COM SEGURANÇA)
 async function salvarNoBanco() {
     const senha = document.getElementById('chaveMestra').value;
-    if (senha !== "intelbras@123") return alert("Senha incorreta!");
+    
+    // Chama a API da Vercel em vez de conferir aqui
+    const autorizado = await validarSenhaVercel(senha);
+    
+    if (!autorizado) {
+        return alert("Senha incorreta! Você não tem permissão para salvar.");
+    }
 
     const novoItem = {
         segmento: document.getElementById('addSegmento').value,
@@ -79,11 +101,16 @@ async function salvarNoBanco() {
     }
 }
 
-// FUNÇÃO PARA EXCLUIR DADOS
+// FUNÇÃO PARA EXCLUIR DADOS (ATUALIZADA COM SEGURANÇA)
 async function excluirDoBanco(id) {
     const senha = prompt("Digite a senha mestra para confirmar a exclusão:");
     
-    if (senha !== "intelbras@123") {
+    if (!senha) return;
+
+    // Chama a API da Vercel em vez de conferir aqui
+    const autorizado = await validarSenhaVercel(senha);
+
+    if (!autorizado) {
         alert("Senha incorreta! Operação cancelada.");
         return;
     }
@@ -229,7 +256,7 @@ function carregarTemaSalvo() {
     }
 }
 
-// FUNÇÃO PARA CARREGAR OS SEGMENTOS (Atualizada com Links e Lixeira na Direita)
+// FUNÇÃO PARA CARREGAR OS SEGMENTOS 
 function carregarSegmentos() {
     const container = document.getElementById('segmentosContainer');
     if (!container) return;
@@ -257,12 +284,10 @@ function carregarSegmentos() {
             const tituloTopico = document.createElement('h3');
             tituloTopico.className = 'topico-titulo';
             
-            // Texto do título
             const spanTitulo = document.createElement('span');
             spanTitulo.textContent = topico.titulo;
             tituloTopico.appendChild(spanTitulo);
 
-            // BOTÃO EXCLUIR NO TÓPICO (Usando a classe do seu CSS)
             const btnExcluir = document.createElement('span');
             btnExcluir.innerHTML = '🗑️';
             btnExcluir.className = 'btn-excluir'; 
@@ -274,7 +299,6 @@ function carregarSegmentos() {
             if (topico.texto) {
                 const textoTopico = document.createElement('div');
                 textoTopico.className = 'topico-texto';
-                // FORMATAÇÃO DE LINKS AQUI
                 textoTopico.innerHTML = formatarLinks(topico.texto).replace(/\n/g, '<br>');
                 textoTopico.style.display = 'none';
                 topicoEl.appendChild(textoTopico);
@@ -297,7 +321,6 @@ function carregarSegmentos() {
                     spanSub.textContent = subtopico.titulo;
                     tituloSubtopico.appendChild(spanSub);
 
-                    // BOTÃO EXCLUIR NO SUBTÓPICO (Usando a classe do seu CSS)
                     const btnExcluirSub = document.createElement('span');
                     btnExcluirSub.innerHTML = '🗑️';
                     btnExcluirSub.className = 'btn-excluir';
@@ -308,7 +331,6 @@ function carregarSegmentos() {
                     
                     const textoSubtopico = document.createElement('div');
                     textoSubtopico.className = 'subtopico-texto';
-                    // FORMATAÇÃO DE LINKS AQUI TAMBÉM
                     textoSubtopico.innerHTML = formatarLinks(subtopico.texto).replace(/\n/g, '<br>');
                     textoSubtopico.style.display = 'none';
                     subtopicoEl.appendChild(textoSubtopico);
