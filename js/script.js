@@ -98,7 +98,6 @@ function preencherDropdownTopicos(idSelect, nomeSegmento) {
     }
 }
 
-// Lógica para o modal de ADIÇÃO
 function ajustarInputsDinamicos(nivel) {
     if (nivel === 'segmento') {
         const selectSeg = document.getElementById('selectSegmento');
@@ -119,7 +118,6 @@ function ajustarInputsDinamicos(nivel) {
     }
 }
 
-// Lógica para o modal de EDIÇÃO
 function ajustarInputsEdicao(nivel) {
     if (nivel === 'segmento') {
         const selectSeg = document.getElementById('editSelectSegmento');
@@ -177,32 +175,22 @@ async function salvarNoBanco() {
 
 function prepararEdicao(id, segmentoAtual, topicoAtual, subtopico, texto) {
     document.getElementById('editId').value = id;
-    
-    // Prepara segmentos
     preencherDropdownSegmentos('editSelectSegmento');
     document.getElementById('editSelectSegmento').value = segmentoAtual;
-    
-    // Prepara tópicos baseados no segmento do card
     preencherDropdownTopicos('editSelectTopico', segmentoAtual);
     document.getElementById('editSelectTopico').value = topicoAtual;
-
     document.getElementById('editSubtopico').value = subtopico || '';
     document.getElementById('editTexto').value = texto;
-    
-    // Esconde campos de texto "novo" inicialmente
     document.getElementById('editSegmentoNovo').style.display = 'none';
     document.getElementById('editTopicoNovo').style.display = 'none';
-    
     document.getElementById('modalEditar').style.display = 'flex';
 }
 
 async function confirmarEdicao() {
     if (!usuarioLogado) return;
     const id = document.getElementById('editId').value;
-    
     const segSel = document.getElementById('editSelectSegmento').value;
     const topSel = document.getElementById('editSelectTopico').value;
-
     const finalSeg = segSel === 'novo' ? document.getElementById('editSegmentoNovo').value : segSel;
     const finalTop = topSel === 'novo' ? document.getElementById('editTopicoNovo').value : topSel;
 
@@ -252,14 +240,14 @@ async function carregarDados() {
         data.forEach(item => {
             let seg = organizado.segmentos.find(s => s.titulo === item.segmento);
             if (!seg) {
-                seg = { id: item.segmento.toLowerCase().replace(/ /g, '-'), titulo: item.segmento, topicos: [] };
+                seg = { id: item.segmento.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-'), titulo: item.segmento, topicos: [] };
                 organizado.segmentos.push(seg);
             }
             let top = seg.topicos.find(t => t.titulo === item.topico);
             if (!top) {
                 top = { 
                     id_banco: item.id, 
-                    id: item.topico.toLowerCase().replace(/ /g, '-'), 
+                    id: item.topico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-'), 
                     titulo: item.topico, 
                     texto: item.subtopico ? '' : item.texto, 
                     subtopicos: [] 
@@ -269,7 +257,7 @@ async function carregarDados() {
             if (item.subtopico) {
                 top.subtopicos.push({
                     id_banco: item.id, 
-                    id: item.subtopico.toLowerCase().replace(/ /g, '-'),
+                    id: item.subtopico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-'),
                     titulo: item.subtopico,
                     texto: item.texto
                 });
@@ -331,6 +319,7 @@ function carregarSegmentos() {
                 topico.subtopicos.forEach(sub => {
                     const subEl = document.createElement('div');
                     subEl.className = 'subtopico';
+                    subEl.dataset.id = sub.id; // IMPORTANTE: Adicionado ID no subtopico
                     const h4 = document.createElement('h4');
                     h4.className = 'subtopico-titulo';
                     h4.innerHTML = `<span>${sub.titulo}</span>`;
@@ -387,20 +376,24 @@ function criarBotoesAdmin(id, seg, top, sub, txt) {
 
 // --- PESQUISA E UTILITÁRIOS ---
 
-function normalizarTexto(t) { return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ''; }
+// Melhora a normalização para ignorar acentos e maiúsculas de forma eficiente
+function normalizarTexto(t) { 
+    return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ''; 
+}
 
 function pesquisar(termo) {
     const t = normalizarTexto(termo);
     const res = [];
     dadosWiki.segmentos.forEach(s => {
-        if (normalizarTexto(s.titulo).includes(t)) res.push({ tipo: 'seg', segmentoId: s.id, titulo: s.titulo, texto: '', caminho: s.titulo });
+        if (normalizarTexto(s.titulo).includes(t)) res.push({ tipo: 'seg', segmentoId: s.id, titulo: s.titulo, caminho: s.titulo });
+        
         s.topicos.forEach(top => {
             if (normalizarTexto(top.titulo).includes(t) || normalizarTexto(top.texto).includes(t)) {
-                res.push({ tipo: 'top', segmentoId: s.id, topicoId: top.id, titulo: top.titulo, texto: top.texto || '', caminho: `${s.titulo} > ${top.titulo}` });
+                res.push({ tipo: 'top', segmentoId: s.id, topicoId: top.id, titulo: top.titulo, caminho: `${s.titulo} > ${top.titulo}` });
             }
             top.subtopicos.forEach(sub => {
                 if (normalizarTexto(sub.titulo).includes(t) || normalizarTexto(sub.texto).includes(t)) {
-                    res.push({ tipo: 'sub', segmentoId: s.id, topicoId: top.id, subtopicoId: sub.id, titulo: sub.titulo, texto: sub.texto || '', caminho: `${s.titulo} > ${top.titulo} > ${sub.titulo}` });
+                    res.push({ tipo: 'sub', segmentoId: s.id, topicoId: top.id, subtopicoId: sub.id, titulo: sub.titulo, caminho: `${s.titulo} > ${top.titulo} > ${sub.titulo}` });
                 }
             });
         });
@@ -411,12 +404,16 @@ function pesquisar(termo) {
 function mostrarResultados(resultados, termo) {
     const area = document.getElementById('resultadosPesquisa');
     const cont = document.getElementById('segmentosContainer');
+    area.innerHTML = '';
+
     if (resultados.length === 0) {
         area.innerHTML = `<p style="padding:20px">Nenhum resultado para "${termo}"</p>`;
     } else {
         let h = `<h3 style="padding:10px 20px">Resultados (${resultados.length})</h3><ul class="resultados-lista">`;
-        resultados.forEach((r, i) => {
-            h += `<li class="resultado-item" onclick='navegarParaResultado(${JSON.stringify(r)})'>
+        resultados.forEach((r) => {
+            // Transformamos o objeto em string segura para o onclick
+            const rString = JSON.stringify(r).replace(/'/g, "&apos;");
+            h += `<li class="resultado-item" onclick='navegarParaResultado(${rString})'>
                     <strong>${r.titulo}</strong><br><small>${r.caminho}</small>
                   </li>`;
         });
@@ -428,25 +425,40 @@ function mostrarResultados(resultados, termo) {
 
 function navegarParaResultado(r) {
     limparPesquisa();
+    
+    // 1. Abrir Segmento
     const segEl = document.querySelector(`.segmento[data-id="${r.segmentoId}"]`);
     if (!segEl) return;
     segEl.classList.add('aberto');
     segEl.querySelector('.topicos-container').style.display = 'block';
 
+    // 2. Abrir Tópico (se existir)
     if (r.topicoId) {
         const topEl = segEl.querySelector(`.topico[data-id="${r.topicoId}"]`);
-        topEl.classList.add('aberto');
-        if (topEl.querySelector('.topico-texto')) topEl.querySelector('.topico-texto').style.display = 'block';
-        if (topEl.querySelector('.subtopicos-container')) topEl.querySelector('.subtopicos-container').style.display = 'block';
-        
-        if (r.subtopicoId) {
-            const subEl = topEl.querySelector(`.subtopico[data-id="${r.subtopicoId}"]`);
-            subEl.classList.add('aberto');
-            subEl.querySelector('.subtopico-texto').style.display = 'block';
-            subEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            topEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (topEl) {
+            topEl.classList.add('aberto');
+            const txt = topEl.querySelector('.topico-texto');
+            const sub = topEl.querySelector('.subtopicos-container');
+            if (txt) txt.style.display = 'block';
+            if (sub) sub.style.display = 'block';
+
+            // 3. Abrir Subtópico (se existir)
+            if (r.subtopicoId) {
+                const subEl = topEl.querySelector(`.subtopico[data-id="${r.subtopicoId}"]`);
+                if (subEl) {
+                    subEl.classList.add('aberto');
+                    subEl.querySelector('.subtopico-texto').style.display = 'block';
+                    // Scroll suave para o subtópico
+                    setTimeout(() => subEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                }
+            } else {
+                // Scroll suave para o tópico
+                setTimeout(() => topEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+            }
         }
+    } else {
+        // Scroll para o segmento se a busca for só por título de segmento
+        setTimeout(() => segEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     }
 }
 

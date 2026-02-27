@@ -491,3 +491,94 @@ RESPONSIVIDADE
         margin-right: 10px;
     }
 }
+
+/* ==================================================
+ESTILIZAÇÃO DA PESQUISA (RESULTADOS)
+================================================== */
+#resultadosPesquisa {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin-top: 10px;
+    box-shadow: var(--shadow-xl);
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+}
+
+.resultados-lista {
+    list-style: none;
+    padding: 0;
+}
+
+.resultado-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.resultado-item:last-child {
+    border-bottom: none;
+}
+
+.resultado-item:hover {
+    background: var(--verde-light);
+}
+
+.resultado-item strong {
+    color: var(--verde-intelbras);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.resultado-item small {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+}
+
+/* ==================================================
+EFEITO DE DESTAQUE AO NAVEGAR (TARGET)
+================================================== */
+/* Classe adicionada via JS ou via foco para destacar o item encontrado */
+.aberto.destaque-busca {
+    animation: pulse-destaque 2s ease-out;
+}
+
+@keyframes pulse-destaque {
+    0% { box-shadow: 0 0 0 0 rgba(0, 168, 89, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(0, 168, 89, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 168, 89, 0); }
+}
+
+/* Scrollbar com a cara da Intelbras */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--verde-intelbras);
+}
+
+/* Estilo para links dentro do texto */
+.topico-texto a, .subtopico-texto a {
+    color: var(--verde-intelbras);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid transparent;
+    transition: var(--transition-fast);
+}
+
+.topico-texto a:hover, .subtopico-texto a:hover {
+    border-bottom-color: var(--verde-intelbras);
+    filter: brightness(0.8);
+}

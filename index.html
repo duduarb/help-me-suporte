@@ -14,7 +14,7 @@
         </div>
         
         <div class="cabecalho-centro">
-            <input type="text" class="barra-pesquisa" placeholder="Pesquisar em toda wiki...">
+            <input type="text" class="barra-pesquisa" id="inputPesquisa" placeholder="Pesquisar em toda wiki...">
         </div>
         
         <div class="cabecalho-direita">
@@ -26,6 +26,7 @@
 
     <main class="conteudo-principal">
         <div id="resultadosPesquisa" class="resultados-pesquisa" style="display: none;"></div>
+        
         <div class="segmentos-container" id="segmentosContainer"></div>
         
         <div id="containerAdicionarLateral" style="display: none; justify-content: center; margin-top: 20px;">
@@ -60,7 +61,6 @@
             <h3 style="margin-bottom: 20px;">Acesso Administrativo</h3>
             <input type="email" id="loginEmail" placeholder="E-mail" style="width:100%; margin-bottom:10px; padding:12px; border: 1px solid #ddd; border-radius: 4px;">
             <input type="password" id="loginSenha" placeholder="Senha" style="width:100%; margin-bottom:20px; padding:12px; border: 1px solid #ddd; border-radius: 4px;">
-            
             <button onclick="realizarLogin()" style="background:#00a859; color:white; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; width: 100%; font-weight: bold; margin-bottom: 10px;">Entrar</button>
             <button onclick="fecharModais()" style="background:none; color:#666; border:none; cursor:pointer; font-size: 14px;">Cancelar</button>
         </div>
@@ -78,7 +78,6 @@
     <div id="modalAdmin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px; color: #333;">
             <h3>Novo Conteúdo</h3><br>
-            
             <label style="font-size: 12px; font-weight: bold;">1. Escolha o Segmento:</label>
             <select id="selectSegmento" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsDinamicos('segmento')">
                 <option value="">Selecione...</option>
@@ -95,7 +94,6 @@
             <label style="font-size: 12px; font-weight: bold;">3. Subtópico e Texto:</label>
             <input type="text" id="addSubtopico" placeholder="Subtópico (ex: Instalação) - Opcional" style="width:100%; margin-bottom:10px; padding:8px;">
             <textarea id="addTexto" placeholder="Texto do conteúdo (pode usar <br>)" style="width:100%; height:100px; margin-bottom:10px; padding:8px;"></textarea>
-        
             <button onclick="salvarNoBanco()" style="background:#00a859; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Salvar na Nuvem</button>
             <button onclick="fecharModais()" style="background:#666; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; margin-left:10px;">Cancelar</button>
         </div>
@@ -105,23 +103,16 @@
         <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px; color: #333;">
             <h3>Editar Tudo</h3><br>
             <input type="hidden" id="editId">
-            
             <label style="font-size: 11px; font-weight: bold;">Mover para Segmento:</label>
-            <select id="editSelectSegmento" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsEdicao('segmento')">
-                </select>
+            <select id="editSelectSegmento" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsEdicao('segmento')"></select>
             <input type="text" id="editSegmentoNovo" placeholder="Novo nome para este Segmento" style="display:none; width:100%; margin-bottom:10px; padding:8px; border: 1px solid #00a859;">
-            
             <label style="font-size: 11px; font-weight: bold;">Mover para Tópico:</label>
-            <select id="editSelectTopico" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsEdicao('topico')">
-                </select>
+            <select id="editSelectTopico" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsEdicao('topico')"></select>
             <input type="text" id="editTopicoNovo" placeholder="Novo nome para este Tópico" style="display:none; width:100%; margin-bottom:10px; padding:8px; border: 1px solid #00a859;">
-            
             <label style="font-size: 11px; font-weight: bold;">Subtópico:</label>
             <input type="text" id="editSubtopico" style="width:100%; margin-bottom:10px; padding:8px;">
-            
             <label style="font-size: 11px; font-weight: bold;">Conteúdo:</label>
             <textarea id="editTexto" style="width:100%; height:120px; margin-bottom:10px; padding:8px;"></textarea>
-        
             <button onclick="confirmarEdicao()" style="background:#00a859; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Salvar Alterações</button>
             <button onclick="fecharModais()" style="background:#666; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; margin-left:10px;">Cancelar</button>
         </div>
