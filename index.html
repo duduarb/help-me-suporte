@@ -10,7 +10,7 @@
 <body>
     <header class="cabecalho">
         <div class="cabecalho-esquerda">
-            <h1 onclick="window.location.reload()" style="cursor: pointer;">Wiki Suporte Consumo</h1>
+            <h1 onclick="window.location.reload()" class="logo-wiki">Wiki Suporte Consumo</h1>
         </div>
         
         <div class="cabecalho-centro">
@@ -25,12 +25,12 @@
     </header>
 
     <main class="conteudo-principal">
-        <div id="resultadosPesquisa" class="resultados-pesquisa" style="display: none;"></div>
+        <div id="resultadosPesquisa" class="resultados-pesquisa"></div>
         
         <div class="segmentos-container" id="segmentosContainer"></div>
         
-        <div id="containerAdicionarLateral" style="display: none; justify-content: center; margin-top: 20px;">
-            <button onclick="abrirModalAdicionar()" class="btn-adicionar-novo" style="background: var(--verde-intelbras); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 10px;">
+        <div id="containerAdicionarLateral" class="container-admin-action">
+            <button onclick="abrirModalAdicionar()" class="btn-adicionar-novo">
                 <span>➕</span> Adicionar Novo Conteúdo
             </button>
         </div>
@@ -54,67 +54,91 @@
         </div>
     </footer>
 
-    <button onclick="gerenciarPainelAdmin()" style="position: fixed; bottom: 10px; right: 10px; opacity: 0.3; border: none; background: none; cursor: pointer; font-size: 20px; z-index: 1001;">⚙️</button>
+    <button onclick="gerenciarPainelAdmin()" class="btn-floating-admin" title="Configurações">⚙️</button>
 
-    <div id="modalLogin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:30px; border-radius:8px; width:90%; max-width:400px; color: #333; text-align: center;">
-            <h3 style="margin-bottom: 20px;">Acesso Administrativo</h3>
-            <input type="email" id="loginEmail" placeholder="E-mail" style="width:100%; margin-bottom:10px; padding:12px; border: 1px solid #ddd; border-radius: 4px;">
-            <input type="password" id="loginSenha" placeholder="Senha" style="width:100%; margin-bottom:20px; padding:12px; border: 1px solid #ddd; border-radius: 4px;">
-            <button onclick="realizarLogin()" style="background:#00a859; color:white; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; width: 100%; font-weight: bold; margin-bottom: 10px;">Entrar</button>
-            <button onclick="fecharModais()" style="background:none; color:#666; border:none; cursor:pointer; font-size: 14px;">Cancelar</button>
+    <div id="modalLogin" class="modal-overlay">
+        <div class="modal-content modal-small">
+            <h3>Acesso ADMIN</h3>
+            <input type="email" id="loginEmail" placeholder="E-mail">
+            <input type="password" id="loginSenha" placeholder="Senha">
+            <button onclick="realizarLogin()" class="btn-confirmar">Entrar</button>
+            <button onclick="fecharModais()" class="btn-cancelar-text">Cancelar</button>
         </div>
     </div>
 
-    <div id="modalOpcoesAdmin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9998; justify-content:center; align-items:center;">
-        <div style="background:white; padding:25px; border-radius:8px; width:90%; max-width:400px; color: #333; text-align: center;">
-            <h3 style="margin-bottom: 20px;">Painel de Controle</h3>
-            <button onclick="realizarLogout()" style="background:#d9534f; color:white; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; width: 100%;">🚪 Sair (Logout)</button>
-            <hr style="margin: 20px 0; opacity: 0.2;">
-            <button onclick="fecharModais()" style="background:none; color:#666; border:none; cursor:pointer;">Fechar</button>
+    <div id="modalOpcoesAdmin" class="modal-overlay">
+        <div class="modal-content modal-small">
+            <h3>Painel de Controle</h3>
+            <button onclick="realizarLogout()" class="btn-logout">🚪 Sair (Logout)</button>
+            <hr class="divisor-modal">
+            <button onclick="fecharModais()" class="btn-cancelar-text">Fechar</button>
         </div>
     </div>
 
-    <div id="modalAdmin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px; color: #333;">
-            <h3>Novo Conteúdo</h3><br>
-            <label style="font-size: 12px; font-weight: bold;">1. Escolha o Segmento:</label>
-            <select id="selectSegmento" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsDinamicos('segmento')">
-                <option value="">Selecione...</option>
-                <option value="novo">+ Criar Novo Segmento</option>
-            </select>
-            <input type="text" id="addSegmentoNovo" placeholder="Nome do novo Segmento" style="display:none; width:100%; margin-bottom:10px; padding:8px; border: 1px solid var(--verde-intelbras);">
+    <div id="modalAdmin" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Novo Conteúdo</h3>
+            <div class="form-group">
+                <label>1. Escolha o Segmento:</label>
+                <select id="selectSegmento" onchange="ajustarInputsDinamicos('segmento')">
+                    <option value="">Selecione...</option>
+                    <option value="novo">+ Criar Novo Segmento</option>
+                </select>
+                <input type="text" id="addSegmentoNovo" class="input-destaque" placeholder="Nome do novo Segmento">
+            </div>
 
-            <label style="font-size: 12px; font-weight: bold;">2. Escolha o Tópico:</label>
-            <select id="selectTopico" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsDinamicos('topico')">
-                <option value="">Selecione um segmento primeiro...</option>
-            </select>
-            <input type="text" id="addTopicoNovo" placeholder="Nome do novo Tópico" style="display:none; width:100%; margin-bottom:10px; padding:8px; border: 1px solid var(--verde-intelbras);">
+            <div class="form-group">
+                <label>2. Escolha o Tópico:</label>
+                <select id="selectTopico" onchange="ajustarInputsDinamicos('topico')">
+                    <option value="">Selecione um segmento primeiro...</option>
+                </select>
+                <input type="text" id="addTopicoNovo" class="input-destaque" placeholder="Nome do novo Tópico">
+            </div>
 
-            <label style="font-size: 12px; font-weight: bold;">3. Subtópico e Texto:</label>
-            <input type="text" id="addSubtopico" placeholder="Subtópico (ex: Instalação) - Opcional" style="width:100%; margin-bottom:10px; padding:8px;">
-            <textarea id="addTexto" placeholder="Texto do conteúdo (pode usar <br>)" style="width:100%; height:100px; margin-bottom:10px; padding:8px;"></textarea>
-            <button onclick="salvarNoBanco()" style="background:#00a859; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Salvar na Nuvem</button>
-            <button onclick="fecharModais()" style="background:#666; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; margin-left:10px;">Cancelar</button>
+            <div class="form-group">
+                <label>3. Subtópico e Texto:</label>
+                <input type="text" id="addSubtopico" placeholder="Subtópico (ex: Instalação) - Opcional">
+                <textarea id="addTexto" placeholder="Texto do conteúdo (pode usar <br>)"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="salvarNoBanco()" class="btn-confirmar">Salvar na Nuvem</button>
+                <button onclick="fecharModais()" class="btn-cancelar">Cancelar</button>
+            </div>
         </div>
     </div>
 
-    <div id="modalEditar" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:20px; border-radius:8px; width:90%; max-width:500px; color: #333;">
-            <h3>Editar Tudo</h3><br>
+    <div id="modalEditar" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Editar Tudo</h3>
             <input type="hidden" id="editId">
-            <label style="font-size: 11px; font-weight: bold;">Mover para Segmento:</label>
-            <select id="editSelectSegmento" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsEdicao('segmento')"></select>
-            <input type="text" id="editSegmentoNovo" placeholder="Novo nome para este Segmento" style="display:none; width:100%; margin-bottom:10px; padding:8px; border: 1px solid #00a859;">
-            <label style="font-size: 11px; font-weight: bold;">Mover para Tópico:</label>
-            <select id="editSelectTopico" style="width:100%; margin-bottom:10px; padding:8px;" onchange="ajustarInputsEdicao('topico')"></select>
-            <input type="text" id="editTopicoNovo" placeholder="Novo nome para este Tópico" style="display:none; width:100%; margin-bottom:10px; padding:8px; border: 1px solid #00a859;">
-            <label style="font-size: 11px; font-weight: bold;">Subtópico:</label>
-            <input type="text" id="editSubtopico" style="width:100%; margin-bottom:10px; padding:8px;">
-            <label style="font-size: 11px; font-weight: bold;">Conteúdo:</label>
-            <textarea id="editTexto" style="width:100%; height:120px; margin-bottom:10px; padding:8px;"></textarea>
-            <button onclick="confirmarEdicao()" style="background:#00a859; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;">Salvar Alterações</button>
-            <button onclick="fecharModais()" style="background:#666; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; margin-left:10px;">Cancelar</button>
+            
+            <div class="form-group">
+                <label>Mover para Segmento:</label>
+                <select id="editSelectSegmento" onchange="ajustarInputsEdicao('segmento')"></select>
+                <input type="text" id="editSegmentoNovo" class="input-destaque" placeholder="Novo nome para este Segmento">
+            </div>
+
+            <div class="form-group">
+                <label>Mover para Tópico:</label>
+                <select id="editSelectTopico" onchange="ajustarInputsEdicao('topico')"></select>
+                <input type="text" id="editTopicoNovo" class="input-destaque" placeholder="Novo nome para este Tópico">
+            </div>
+
+            <div class="form-group">
+                <label>Subtópico:</label>
+                <input type="text" id="editSubtopico">
+            </div>
+
+            <div class="form-group">
+                <label>Conteúdo:</label>
+                <textarea id="editTexto"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="confirmarEdicao()" class="btn-confirmar">Salvar Alterações</button>
+                <button onclick="fecharModais()" class="btn-cancelar">Cancelar</button>
+            </div>
         </div>
     </div>
 
