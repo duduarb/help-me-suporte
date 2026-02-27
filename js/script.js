@@ -8,10 +8,12 @@ let usuarioLogado = null;
 
 // --- SISTEMA DE AUTENTICAÇÃO ---
 
-// Verifica o estado do login em tempo real
 _supabase.auth.onAuthStateChange((event, session) => {
     usuarioLogado = session ? session.user : null;
-    // Recarrega a visualização para mostrar/esconder botões de edição
+    
+    const btnAddContainer = document.getElementById('containerAdicionarLateral');
+    if (btnAddContainer) btnAddContainer.style.display = usuarioLogado ? 'flex' : 'none';
+
     if (dadosWiki.segmentos.length > 0) carregarSegmentos();
 });
 
@@ -48,36 +50,209 @@ function gerenciarPainelAdmin() {
 }
 
 function fecharModais() {
-    document.getElementById('modalLogin').style.display = 'none';
-    document.getElementById('modalOpcoesAdmin').style.display = 'none';
-    document.getElementById('modalAdmin').style.display = 'none';
-    document.getElementById('modalEditar').style.display = 'none';
+    const modais = ['modalLogin', 'modalOpcoesAdmin', 'modalAdmin', 'modalEditar'];
+    modais.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
 }
 
+// --- FUNÇÕES DE DROPDOWNS (ADIÇÃO E EDIÇÃO) ---
+
 function abrirModalAdicionar() {
+    preencherDropdownSegmentos('selectSegmento');
     document.getElementById('modalOpcoesAdmin').style.display = 'none';
     document.getElementById('modalAdmin').style.display = 'flex';
 }
 
-// --- FUNÇÕES DE DADOS ---
+function preencherDropdownSegmentos(idSelect) {
+    const select = document.getElementById(idSelect);
+    const labelNovo = idSelect === 'selectSegmento' ? '+ Criar Novo Segmento' : '+ Mudar nome do Segmento';
+    select.innerHTML = `<option value="">Selecione...</option><option value="novo">${labelNovo}</option>`;
+    
+    const nomesSegmentos = [...new Set(dadosWiki.segmentos.map(s => s.titulo))].sort();
+    nomesSegmentos.forEach(nome => {
+        const option = document.createElement('option');
+        option.value = nome;
+        option.textContent = nome;
+        select.appendChild(option);
+    });
+}
+
+function preencherDropdownTopicos(idSelect, nomeSegmento) {
+    const select = document.getElementById(idSelect);
+    const labelNovo = idSelect === 'selectTopico' ? '+ Criar Novo Tópico' : '+ Mudar nome do Tópico';
+    select.innerHTML = `<option value="">Selecione...</option><option value="novo">${labelNovo}</option>`;
+    
+    if (!nomeSegmento) return;
+
+    const segmento = dadosWiki.segmentos.find(s => s.titulo === nomeSegmento);
+    if (segmento) {
+        const nomesTopicos = [...new Set(segmento.topicos.map(t => t.titulo))].sort();
+        nomesTopicos.forEach(nome => {
+            const option = document.createElement('option');
+            option.value = nome;
+            option.textContent = nome;
+            select.appendChild(option);
+        });
+    }
+}
+
+// Lógica para o modal de ADIÇÃO
+function ajustarInputsDinamicos(nivel) {
+    if (nivel === 'segmento') {
+        const selectSeg = document.getElementById('selectSegmento');
+        const inputNovoSeg = document.getElementById('addSegmentoNovo');
+        if (selectSeg.value === 'novo') {
+            inputNovoSeg.style.display = 'block';
+            const selectTop = document.getElementById('selectTopico');
+            selectTop.innerHTML = '<option value="novo">+ Criar Novo Tópico</option>';
+            selectTop.value = 'novo';
+            ajustarInputsDinamicos('topico');
+        } else {
+            inputNovoSeg.style.display = 'none';
+            preencherDropdownTopicos('selectTopico', selectSeg.value);
+        }
+    } else {
+        const selectTop = document.getElementById('selectTopico');
+        document.getElementById('addTopicoNovo').style.display = (selectTop.value === 'novo') ? 'block' : 'none';
+    }
+}
+
+// Lógica para o modal de EDIÇÃO
+function ajustarInputsEdicao(nivel) {
+    if (nivel === 'segmento') {
+        const selectSeg = document.getElementById('editSelectSegmento');
+        const inputNovoSeg = document.getElementById('editSegmentoNovo');
+        if (selectSeg.value === 'novo') {
+            inputNovoSeg.style.display = 'block';
+            const selectTop = document.getElementById('editSelectTopico');
+            selectTop.innerHTML = '<option value="novo">+ Mudar nome do Tópico</option>';
+            selectTop.value = 'novo';
+            ajustarInputsEdicao('topico');
+        } else {
+            inputNovoSeg.style.display = 'none';
+            preencherDropdownTopicos('editSelectTopico', selectSeg.value);
+        }
+    } else {
+        const selectTop = document.getElementById('editSelectTopico');
+        document.getElementById('editTopicoNovo').style.display = (selectTop.value === 'novo') ? 'block' : 'none';
+    }
+}
+
+// --- FUNÇÕES DE SALVAMENTO, EDIÇÃO E EXCLUSÃO ---
+
+async function salvarNoBanco() {
+    if (!usuarioLogado) return;
+
+    const segSel = document.getElementById('selectSegmento').value;
+    const segNovo = document.getElementById('addSegmentoNovo').value;
+    const topSel = document.getElementById('selectTopico').value;
+    const topNovo = document.getElementById('addTopicoNovo').value;
+
+    const finalSegmento = segSel === 'novo' ? segNovo : segSel;
+    const finalTopico = topSel === 'novo' ? topNovo : topSel;
+    const finalSubtopico = document.getElementById('addSubtopico').value;
+    const finalTexto = document.getElementById('addTexto').value;
+
+    if (!finalSegmento || !finalTopico || !finalTexto) {
+        alert("Por favor, preencha Segmento, Tópico e Texto.");
+        return;
+    }
+
+    const { error } = await _supabase.from('wiki_conteudos').insert([{
+        segmento: finalSegmento,
+        topico: finalTopico,
+        subtopico: finalSubtopico,
+        texto: finalTexto
+    }]);
+
+    if (!error) {
+        alert("Salvo com sucesso!");
+        location.reload();
+    } else {
+        alert("Erro ao salvar: " + error.message);
+    }
+}
+
+function prepararEdicao(id, segmentoAtual, topicoAtual, subtopico, texto) {
+    document.getElementById('editId').value = id;
+    
+    // Prepara segmentos
+    preencherDropdownSegmentos('editSelectSegmento');
+    document.getElementById('editSelectSegmento').value = segmentoAtual;
+    
+    // Prepara tópicos baseados no segmento do card
+    preencherDropdownTopicos('editSelectTopico', segmentoAtual);
+    document.getElementById('editSelectTopico').value = topicoAtual;
+
+    document.getElementById('editSubtopico').value = subtopico || '';
+    document.getElementById('editTexto').value = texto;
+    
+    // Esconde campos de texto "novo" inicialmente
+    document.getElementById('editSegmentoNovo').style.display = 'none';
+    document.getElementById('editTopicoNovo').style.display = 'none';
+    
+    document.getElementById('modalEditar').style.display = 'flex';
+}
+
+async function confirmarEdicao() {
+    if (!usuarioLogado) return;
+    const id = document.getElementById('editId').value;
+    
+    const segSel = document.getElementById('editSelectSegmento').value;
+    const topSel = document.getElementById('editSelectTopico').value;
+
+    const finalSeg = segSel === 'novo' ? document.getElementById('editSegmentoNovo').value : segSel;
+    const finalTop = topSel === 'novo' ? document.getElementById('editTopicoNovo').value : topSel;
+
+    if (!finalSeg || !finalTop) {
+        alert("Segmento e Tópico são obrigatórios.");
+        return;
+    }
+
+    const dadosAtualizados = {
+        segmento: finalSeg,
+        topico: finalTop,
+        subtopico: document.getElementById('editSubtopico').value,
+        texto: document.getElementById('editTexto').value
+    };
+
+    const { error } = await _supabase.from('wiki_conteudos').update(dadosAtualizados).eq('id', id);
+
+    if (!error) {
+        alert("Atualizado com sucesso!");
+        location.reload();
+    } else {
+        alert("Erro ao atualizar: " + error.message);
+    }
+}
+
+async function excluirDoBanco(id) {
+    if (!usuarioLogado) return;
+    if (confirm("Tem certeza que deseja apagar esse conteúdo?")) {
+        const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', id);
+        if (!error) location.reload();
+    }
+}
+
+// --- CORE: CARREGAMENTO E RENDERIZAÇÃO ---
 
 function formatarLinks(texto) {
     if (!texto) return '';
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return texto.replace(urlRegex, function(url) {
-        return `<a href="${url}" target="_blank" style="color: #00a859; text-decoration: underline; font-weight: bold;">${url}</a>`;
-    });
+    return texto.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
 }
 
 async function carregarDados() {
-    const { data, error } = await _supabase.from('wiki_conteudos').select('*');
+    const { data, error } = await _supabase.from('wiki_conteudos').select('*').order('segmento', { ascending: true });
     
     if (data) {
         const organizado = { segmentos: [] };
         data.forEach(item => {
             let seg = organizado.segmentos.find(s => s.titulo === item.segmento);
             if (!seg) {
-                seg = { id: item.segmento.toLowerCase(), titulo: item.segmento, topicos: [] };
+                seg = { id: item.segmento.toLowerCase().replace(/ /g, '-'), titulo: item.segmento, topicos: [] };
                 organizado.segmentos.push(seg);
             }
             let top = seg.topicos.find(t => t.titulo === item.topico);
@@ -105,61 +280,6 @@ async function carregarDados() {
     }
 }
 
-async function salvarNoBanco() {
-    if (!usuarioLogado) return alert("Acesso negado.");
-
-    const novoItem = {
-        segmento: document.getElementById('addSegmento').value,
-        topico: document.getElementById('addTopico').value,
-        subtopico: document.getElementById('addSubtopico').value,
-        texto: document.getElementById('addTexto').value
-    };
-
-    const { error } = await _supabase.from('wiki_conteudos').insert([novoItem]);
-
-    if (!error) {
-        alert("Salvo com sucesso!");
-        location.reload();
-    } else {
-        alert("Erro ao salvar: " + error.message);
-    }
-}
-
-function prepararEdicao(id, textoAtual) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editTexto').value = textoAtual;
-    document.getElementById('modalEditar').style.display = 'flex';
-}
-
-async function confirmarEdicao() {
-    if (!usuarioLogado) return alert("Acesso negado.");
-    const id = document.getElementById('editId').value;
-    const novoTexto = document.getElementById('editTexto').value;
-
-    const { error } = await _supabase
-        .from('wiki_conteudos')
-        .update({ texto: novoTexto })
-        .eq('id', id);
-
-    if (!error) {
-        alert("Conteúdo atualizado!");
-        location.reload();
-    } else {
-        alert("Erro ao atualizar: " + error.message);
-    }
-}
-
-async function excluirDoBanco(id) {
-    if (!usuarioLogado) return alert("Acesso negado.");
-
-    if (confirm("Tem certeza que deseja apagar esse conteúdo?")) {
-        const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', id);
-        if (!error) { location.reload(); }
-    }
-}
-
-// --- INTERFACE E PESQUISA ---
-
 function carregarSegmentos() {
     const container = document.getElementById('segmentosContainer');
     if (!container) return;
@@ -186,31 +306,11 @@ function carregarSegmentos() {
             
             const tituloTopico = document.createElement('h3');
             tituloTopico.className = 'topico-titulo';
-            
-            const spanTitulo = document.createElement('span');
-            spanTitulo.textContent = topico.titulo;
-            tituloTopico.appendChild(spanTitulo);
+            tituloTopico.innerHTML = `<span>${topico.titulo}</span>`;
 
-            // SÓ ADICIONA BOTÕES SE ESTIVER LOGADO
             if (usuarioLogado) {
-                const botoes = document.createElement('div');
-                botoes.className = 'botoes-admin'; // Adicionei classe para você estilizar no CSS se quiser
-                botoes.style.display = 'inline-block';
-                botoes.style.marginLeft = '10px';
-
-                const btnEditar = document.createElement('span');
-                btnEditar.innerHTML = '✏️';
-                btnEditar.className = 'btn-editar';
-                btnEditar.onclick = (e) => { e.stopPropagation(); prepararEdicao(topico.id_banco, topico.texto); };
-                botoes.appendChild(btnEditar);
-
-                const btnExcluir = document.createElement('span');
-                btnExcluir.innerHTML = '🗑️';
-                btnExcluir.className = 'btn-excluir'; 
-                btnExcluir.onclick = (e) => { e.stopPropagation(); excluirDoBanco(topico.id_banco); };
-                botoes.appendChild(btnExcluir);
-
-                tituloTopico.appendChild(botoes);
+                const bts = criarBotoesAdmin(topico.id_banco, segmento.titulo, topico.titulo, '', topico.texto);
+                tituloTopico.appendChild(bts);
             }
 
             topicoEl.appendChild(tituloTopico);
@@ -223,53 +323,32 @@ function carregarSegmentos() {
                 topicoEl.appendChild(textoTopico);
             }
             
-            if (topico.subtopicos && topico.subtopicos.length > 0) {
-                const subtopicosContainer = document.createElement('div');
-                subtopicosContainer.className = 'subtopicos-container';
-                subtopicosContainer.style.display = 'none';
+            if (topico.subtopicos.length > 0) {
+                const subContainer = document.createElement('div');
+                subContainer.className = 'subtopicos-container';
+                subContainer.style.display = 'none';
                 
-                topico.subtopicos.forEach(subtopico => {
-                    const subtopicoEl = document.createElement('div');
-                    subtopicoEl.className = 'subtopico';
-                    subtopicoEl.dataset.id = subtopico.id;
-                    
-                    const tituloSubtopico = document.createElement('h4');
-                    tituloSubtopico.className = 'subtopico-titulo';
-                    
-                    const spanSub = document.createElement('span');
-                    spanSub.textContent = subtopico.titulo;
-                    tituloSubtopico.appendChild(spanSub);
+                topico.subtopicos.forEach(sub => {
+                    const subEl = document.createElement('div');
+                    subEl.className = 'subtopico';
+                    const h4 = document.createElement('h4');
+                    h4.className = 'subtopico-titulo';
+                    h4.innerHTML = `<span>${sub.titulo}</span>`;
 
                     if (usuarioLogado) {
-                        const botoesSub = document.createElement('div');
-                        botoesSub.style.display = 'inline-block';
-                        botoesSub.style.marginLeft = '10px';
-
-                        const btnEditarSub = document.createElement('span');
-                        btnEditarSub.innerHTML = '✏️';
-                        btnEditarSub.className = 'btn-editar';
-                        btnEditarSub.onclick = (e) => { e.stopPropagation(); prepararEdicao(subtopico.id_banco, subtopico.texto); };
-                        botoesSub.appendChild(btnEditarSub);
-
-                        const btnExcluirSub = document.createElement('span');
-                        btnExcluirSub.innerHTML = '🗑️';
-                        btnExcluirSub.className = 'btn-excluir';
-                        btnExcluirSub.onclick = (e) => { e.stopPropagation(); excluirDoBanco(subtopico.id_banco); };
-                        botoesSub.appendChild(btnExcluirSub);
-
-                        tituloSubtopico.appendChild(botoesSub);
+                        const btsS = criarBotoesAdmin(sub.id_banco, segmento.titulo, topico.titulo, sub.titulo, sub.texto);
+                        h4.appendChild(btsS);
                     }
 
-                    subtopicoEl.appendChild(tituloSubtopico);
-                    
-                    const textoSubtopico = document.createElement('div');
-                    textoSubtopico.className = 'subtopico-texto';
-                    textoSubtopico.innerHTML = formatarLinks(subtopico.texto).replace(/\n/g, '<br>');
-                    textoSubtopico.style.display = 'none';
-                    subtopicoEl.appendChild(textoSubtopico);
-                    subtopicosContainer.appendChild(subtopicoEl);
+                    subEl.appendChild(h4);
+                    const stxt = document.createElement('div');
+                    stxt.className = 'subtopico-texto';
+                    stxt.innerHTML = formatarLinks(sub.texto).replace(/\n/g, '<br>');
+                    stxt.style.display = 'none';
+                    subEl.appendChild(stxt);
+                    subContainer.appendChild(subEl);
                 });
-                topicoEl.appendChild(subtopicosContainer);
+                topicoEl.appendChild(subContainer);
             }
             topicosContainer.appendChild(topicoEl);
         });
@@ -279,105 +358,102 @@ function carregarSegmentos() {
     configurarCliques(); 
 }
 
-// ... (Mantenha as funções pesquisar, mostrarResultados, navegarParaResultado, limparPesquisa, alternarTema exatamente como estavam) ...
+function criarBotoesAdmin(id, seg, top, sub, txt) {
+    const div = document.createElement('div');
+    div.className = 'botoes-admin';
+    div.style.display = 'inline-block';
+    div.style.marginLeft = '15px';
 
-function normalizarTexto(texto) {
-    if (!texto) return '';
-    return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const edit = document.createElement('span');
+    edit.innerHTML = '✏️';
+    edit.className = 'btn-editar';
+    edit.onclick = (e) => { 
+        e.stopPropagation(); 
+        prepararEdicao(id, seg, top, sub, txt); 
+    };
+    
+    const del = document.createElement('span');
+    del.innerHTML = '🗑️';
+    del.className = 'btn-excluir';
+    del.onclick = (e) => { 
+        e.stopPropagation(); 
+        excluirDoBanco(id); 
+    };
+
+    div.appendChild(edit);
+    div.appendChild(del);
+    return div;
 }
 
+// --- PESQUISA E UTILITÁRIOS ---
+
+function normalizarTexto(t) { return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ''; }
+
 function pesquisar(termo) {
-    if (!termo || termo.trim() === '') return [];
-    const termoNormalizado = normalizarTexto(termo);
-    const resultados = [];
-    
-    dadosWiki.segmentos.forEach(segmento => {
-        if (normalizarTexto(segmento.titulo).includes(termoNormalizado)) {
-            resultados.push({ tipo: 'segmento', segmentoId: segmento.id, titulo: segmento.titulo, texto: segmento.titulo, caminho: segmento.titulo });
-        }
-        segmento.topicos.forEach(topico => {
-            if (normalizarTexto(topico.titulo).includes(termoNormalizado)) {
-                resultados.push({ tipo: 'topico', segmentoId: segmento.id, topicoId: topico.id, titulo: topico.titulo, texto: topico.texto || '', caminho: `${segmento.titulo} > ${topico.titulo}` });
+    const t = normalizarTexto(termo);
+    const res = [];
+    dadosWiki.segmentos.forEach(s => {
+        if (normalizarTexto(s.titulo).includes(t)) res.push({ tipo: 'seg', segmentoId: s.id, titulo: s.titulo, texto: '', caminho: s.titulo });
+        s.topicos.forEach(top => {
+            if (normalizarTexto(top.titulo).includes(t) || normalizarTexto(top.texto).includes(t)) {
+                res.push({ tipo: 'top', segmentoId: s.id, topicoId: top.id, titulo: top.titulo, texto: top.texto || '', caminho: `${s.titulo} > ${top.titulo}` });
             }
-            if (topico.texto && normalizarTexto(topico.texto).includes(termoNormalizado)) {
-                resultados.push({ tipo: 'topico-texto', segmentoId: segmento.id, topicoId: topico.id, titulo: `Texto: ${topico.titulo}`, texto: topico.texto, caminho: `${segmento.titulo} > ${topico.titulo} (texto)` });
-            }
-            topico.subtopicos.forEach(subtopico => {
-                if (normalizarTexto(subtopico.titulo).includes(termoNormalizado)) {
-                    resultados.push({ tipo: 'subtopico', segmentoId: segmento.id, topicoId: topico.id, subtopicoId: subtopico.id, titulo: subtopico.titulo, texto: subtopico.texto || '', caminho: `${segmento.titulo} > ${topico.titulo} > ${subtopico.titulo}` });
-                }
-                if (subtopico.texto && normalizarTexto(subtopico.texto).includes(termoNormalizado)) {
-                    resultados.push({ tipo: 'subtopico-texto', segmentoId: segmento.id, topicoId: topico.id, subtopicoId: subtopico.id, titulo: `Texto: ${subtopico.titulo}`, texto: subtopico.texto, caminho: `${segmento.titulo} > ${topico.titulo} > ${subtopico.titulo} (texto)` });
+            top.subtopicos.forEach(sub => {
+                if (normalizarTexto(sub.titulo).includes(t) || normalizarTexto(sub.texto).includes(t)) {
+                    res.push({ tipo: 'sub', segmentoId: s.id, topicoId: top.id, subtopicoId: sub.id, titulo: sub.titulo, texto: sub.texto || '', caminho: `${s.titulo} > ${top.titulo} > ${sub.titulo}` });
                 }
             });
         });
     });
-    return resultados;
+    return res;
 }
 
 function mostrarResultados(resultados, termo) {
-    const areaResultados = document.getElementById('resultadosPesquisa');
-    const segmentosContainer = document.getElementById('segmentosContainer');
-    if (!areaResultados) return;
-    
+    const area = document.getElementById('resultadosPesquisa');
+    const cont = document.getElementById('segmentosContainer');
     if (resultados.length === 0) {
-        areaResultados.style.display = 'block';
-        areaResultados.innerHTML = `<p>Nenhum resultado encontrado para "${termo}"</p>`;
-        return;
+        area.innerHTML = `<p style="padding:20px">Nenhum resultado para "${termo}"</p>`;
+    } else {
+        let h = `<h3 style="padding:10px 20px">Resultados (${resultados.length})</h3><ul class="resultados-lista">`;
+        resultados.forEach((r, i) => {
+            h += `<li class="resultado-item" onclick='navegarParaResultado(${JSON.stringify(r)})'>
+                    <strong>${r.titulo}</strong><br><small>${r.caminho}</small>
+                  </li>`;
+        });
+        area.innerHTML = h + '</ul>';
     }
-    
-    let html = `<h3>Resultados para "${termo}" (${resultados.length})</h3><ul class="resultados-lista">`;
-    resultados.forEach((result, index) => {
-        html += `<li class="resultado-item" data-index="${index}"><strong>${result.titulo}</strong><br><small>${result.caminho}</small><br><span class="resultado-preview">${result.texto.substring(0, 100)}...</span></li>`;
-    });
-    html += '</ul>';
-    areaResultados.innerHTML = html;
-    areaResultados.style.display = 'block';
-    segmentosContainer.style.display = 'none';
-    
-    document.querySelectorAll('.resultado-item').forEach(item => {
-        item.addEventListener('click', function() { navegarParaResultado(resultados[this.dataset.index]); });
-    });
+    area.style.display = 'block';
+    cont.style.display = 'none';
 }
 
-function navegarParaResultado(resultado) {
-    const areaResultados = document.getElementById('resultadosPesquisa');
-    const segmentosContainer = document.getElementById('segmentosContainer');
-    segmentosContainer.style.display = 'block';
-    const segmentoEl = document.querySelector(`.segmento[data-id="${resultado.segmentoId}"]`);
-    if (!segmentoEl) return;
-    const topicosContainer = segmentoEl.querySelector('.topicos-container');
-    segmentoEl.classList.add('aberto');
-    topicosContainer.style.display = 'block';
-    
-    if (resultado.topicoId) {
-        const topicoEl = segmentoEl.querySelector(`.topico[data-id="${resultado.topicoId}"]`);
-        if (topicoEl) {
-            topicoEl.classList.add('aberto');
-            const txt = topicoEl.querySelector('.topico-texto');
-            const sub = topicoEl.querySelector('.subtopicos-container');
-            if (txt) txt.style.display = 'block';
-            if (sub) sub.style.display = 'block';
-            if (resultado.subtopicoId) {
-                const subEl = topicoEl.querySelector(`.subtopico[data-id="${resultado.subtopicoId}"]`);
-                if (subEl) {
-                    subEl.classList.add('aberto');
-                    const txtSub = subEl.querySelector('.subtopico-texto');
-                    if (txtSub) txtSub.style.display = 'block';
-                    subEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            } else {
-                topicoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+function navegarParaResultado(r) {
+    limparPesquisa();
+    const segEl = document.querySelector(`.segmento[data-id="${r.segmentoId}"]`);
+    if (!segEl) return;
+    segEl.classList.add('aberto');
+    segEl.querySelector('.topicos-container').style.display = 'block';
+
+    if (r.topicoId) {
+        const topEl = segEl.querySelector(`.topico[data-id="${r.topicoId}"]`);
+        topEl.classList.add('aberto');
+        if (topEl.querySelector('.topico-texto')) topEl.querySelector('.topico-texto').style.display = 'block';
+        if (topEl.querySelector('.subtopicos-container')) topEl.querySelector('.subtopicos-container').style.display = 'block';
+        
+        if (r.subtopicoId) {
+            const subEl = topEl.querySelector(`.subtopico[data-id="${r.subtopicoId}"]`);
+            subEl.classList.add('aberto');
+            subEl.querySelector('.subtopico-texto').style.display = 'block';
+            subEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            topEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
-    areaResultados.style.display = 'none';
-    document.querySelector('.barra-pesquisa').value = '';
 }
 
 function limparPesquisa() {
     document.getElementById('resultadosPesquisa').style.display = 'none';
     document.getElementById('segmentosContainer').style.display = 'block';
+    document.querySelector('.barra-pesquisa').value = '';
 }
 
 function alternarTema() {
@@ -386,58 +462,50 @@ function alternarTema() {
     localStorage.setItem('tema', isDark ? 'escuro' : 'claro');
 }
 
-function carregarTemaSalvo() {
-    const tema = localStorage.getItem('tema');
-    if (tema === 'escuro') {
-        document.body.classList.add('dark-mode');
-        document.querySelector('.icone-tema').textContent = '🌙';
-    }
-}
-
 function configurarCliques() {
-    document.querySelectorAll('.segmento-titulo').forEach(titulo => {
-        titulo.onclick = function() {
-            const container = this.nextElementSibling;
-            this.parentElement.classList.toggle('aberto');
-            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    document.querySelectorAll('.segmento-titulo').forEach(t => {
+        t.onclick = () => {
+            const c = t.nextElementSibling;
+            t.parentElement.classList.toggle('aberto');
+            c.style.display = c.style.display === 'none' ? 'block' : 'none';
         };
     });
-    
-    document.querySelectorAll('.topico-titulo').forEach(titulo => {
-        titulo.onclick = function() {
-            const topico = this.closest('.topico');
-            topico.classList.toggle('aberto');
-            const txt = topico.querySelector('.topico-texto');
-            const sub = topico.querySelector('.subtopicos-container');
-            if (txt) txt.style.display = txt.style.display === 'none' ? 'block' : 'none';
-            if (sub) sub.style.display = sub.style.display === 'none' ? 'block' : 'none';
+    document.querySelectorAll('.topico-titulo').forEach(t => {
+        t.onclick = (e) => {
+            if(e.target.tagName === 'SPAN' || e.target.classList.contains('topico-titulo')){
+               const top = t.closest('.topico');
+               top.classList.toggle('aberto');
+               const tx = top.querySelector('.topico-texto');
+               const sb = top.querySelector('.subtopicos-container');
+               if (tx) tx.style.display = tx.style.display === 'none' ? 'block' : 'none';
+               if (sb) sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
+            }
         };
     });
-
-    document.querySelectorAll('.subtopico-titulo').forEach(titulo => {
-        titulo.onclick = function() {
-            const subtopico = this.closest('.subtopico');
-            subtopico.classList.toggle('aberto');
-            const txt = subtopico.querySelector('.subtopico-texto');
-            if (txt) txt.style.display = txt.style.display === 'none' ? 'block' : 'none';
+    document.querySelectorAll('.subtopico-titulo').forEach(t => {
+        t.onclick = (e) => {
+            if(e.target.tagName === 'SPAN' || e.target.classList.contains('subtopico-titulo')){
+                const sub = t.closest('.subtopico');
+                sub.classList.toggle('aberto');
+                const tx = sub.querySelector('.subtopico-texto');
+                if (tx) tx.style.display = tx.style.display === 'none' ? 'block' : 'none';
+            }
         };
     });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados();
-    carregarTemaSalvo();
-    document.getElementById('botaoTema')?.addEventListener('click', alternarTema);
+    if (localStorage.getItem('tema') === 'escuro') {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.icone-tema').textContent = '🌙';
+    }
+    document.getElementById('botaoTema').onclick = alternarTema;
     
     const barra = document.querySelector('.barra-pesquisa');
-    if (barra) {
-        let timeout;
-        barra.addEventListener('input', function() {
-            clearTimeout(timeout);
-            const termo = this.value.trim();
-            if (termo === '') { limparPesquisa(); return; }
-            timeout = setTimeout(() => { mostrarResultados(pesquisar(termo), termo); }, 300);
-        });
-        barra.addEventListener('keydown', (e) => { if (e.key === 'Escape') { barra.value = ''; limparPesquisa(); } });
-    }
+    barra.oninput = () => {
+        const termo = barra.value.trim();
+        if (!termo) { limparPesquisa(); return; }
+        mostrarResultados(pesquisar(termo), termo);
+    };
 });
