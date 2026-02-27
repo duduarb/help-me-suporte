@@ -1,27 +1,66 @@
-// supabase
+// Configurações do Supabase
 const SUPABASE_URL = 'https://mrzhseelzlfrdhdrmtcy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dErYTyFdVx6V5v4f-1DhGw_r08SIYey';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dadosWiki = { segmentos: [] };
+let usuarioLogado = null;
 
-// função para validar senha no vercel 
-async function validarSenhaVercel(senhaDigitada) {
-    try {
-        const resposta = await fetch('/api/validar-senha', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ senhaDigitada })
-        });
-        const resultado = await resposta.json();
-        return resultado.autorizado;
-    } catch (error) {
-        console.error("Erro ao validar senha:", error);
-        return false;
+// --- SISTEMA DE AUTENTICAÇÃO ---
+
+// Verifica o estado do login em tempo real
+_supabase.auth.onAuthStateChange((event, session) => {
+    usuarioLogado = session ? session.user : null;
+    // Recarrega a visualização para mostrar/esconder botões de edição
+    if (dadosWiki.segmentos.length > 0) carregarSegmentos();
+});
+
+async function realizarLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginSenha').value;
+
+    const { data, error } = await _supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        alert("Erro no login: " + error.message);
+    } else {
+        fecharModais();
+        alert("Bem-vindo, Admin!");
     }
 }
 
-// deixar os links clicáveis
+async function realizarLogout() {
+    await _supabase.auth.signOut();
+    fecharModais();
+    alert("Você saiu do modo administrativo.");
+    location.reload();
+}
+
+function gerenciarPainelAdmin() {
+    if (usuarioLogado) {
+        document.getElementById('modalOpcoesAdmin').style.display = 'flex';
+    } else {
+        document.getElementById('modalLogin').style.display = 'flex';
+    }
+}
+
+function fecharModais() {
+    document.getElementById('modalLogin').style.display = 'none';
+    document.getElementById('modalOpcoesAdmin').style.display = 'none';
+    document.getElementById('modalAdmin').style.display = 'none';
+    document.getElementById('modalEditar').style.display = 'none';
+}
+
+function abrirModalAdicionar() {
+    document.getElementById('modalOpcoesAdmin').style.display = 'none';
+    document.getElementById('modalAdmin').style.display = 'flex';
+}
+
+// --- FUNÇÕES DE DADOS ---
+
 function formatarLinks(texto) {
     if (!texto) return '';
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -30,20 +69,17 @@ function formatarLinks(texto) {
     });
 }
 
-// busca no banco
 async function carregarDados() {
     const { data, error } = await _supabase.from('wiki_conteudos').select('*');
     
     if (data) {
         const organizado = { segmentos: [] };
-        
         data.forEach(item => {
             let seg = organizado.segmentos.find(s => s.titulo === item.segmento);
             if (!seg) {
                 seg = { id: item.segmento.toLowerCase(), titulo: item.segmento, topicos: [] };
                 organizado.segmentos.push(seg);
             }
-            
             let top = seg.topicos.find(t => t.titulo === item.topico);
             if (!top) {
                 top = { 
@@ -55,7 +91,6 @@ async function carregarDados() {
                 };
                 seg.topicos.push(top);
             }
-            
             if (item.subtopico) {
                 top.subtopicos.push({
                     id_banco: item.id, 
@@ -65,19 +100,13 @@ async function carregarDados() {
                 });
             }
         });
-        
         dadosWiki = organizado;
         carregarSegmentos(); 
-        configurarCliques(); 
     }
 }
 
-// salvar no banco
 async function salvarNoBanco() {
-    const senha = document.getElementById('chaveMestra').value;
-    const autorizado = await validarSenhaVercel(senha);
-    
-    if (!autorizado) return alert("Senha incorreta!");
+    if (!usuarioLogado) return alert("Acesso negado.");
 
     const novoItem = {
         segmento: document.getElementById('addSegmento').value,
@@ -96,8 +125,6 @@ async function salvarNoBanco() {
     }
 }
 
-// função de edição
-
 function prepararEdicao(id, textoAtual) {
     document.getElementById('editId').value = id;
     document.getElementById('editTexto').value = textoAtual;
@@ -105,14 +132,9 @@ function prepararEdicao(id, textoAtual) {
 }
 
 async function confirmarEdicao() {
+    if (!usuarioLogado) return alert("Acesso negado.");
     const id = document.getElementById('editId').value;
     const novoTexto = document.getElementById('editTexto').value;
-    const senha = document.getElementById('editSenha').value;
-
-    if (!senha) return alert("Digite a senha para confirmar.");
-
-    const autorizado = await validarSenhaVercel(senha);
-    if (!autorizado) return alert("Senha incorreta!");
 
     const { error } = await _supabase
         .from('wiki_conteudos')
@@ -127,13 +149,8 @@ async function confirmarEdicao() {
     }
 }
 
-// excluir dados do banco
 async function excluirDoBanco(id) {
-    const senha = prompt("Digite a senha mestra para confirmar a exclusão:");
-    if (!senha) return;
-
-    const autorizado = await validarSenhaVercel(senha);
-    if (!autorizado) return alert("Senha incorreta!");
+    if (!usuarioLogado) return alert("Acesso negado.");
 
     if (confirm("Tem certeza que deseja apagar esse conteúdo?")) {
         const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', id);
@@ -141,7 +158,129 @@ async function excluirDoBanco(id) {
     }
 }
 
-// pesquisa e navegação
+// --- INTERFACE E PESQUISA ---
+
+function carregarSegmentos() {
+    const container = document.getElementById('segmentosContainer');
+    if (!container) return;
+    container.innerHTML = ''; 
+    
+    dadosWiki.segmentos.forEach(segmento => {
+        const segmentoEl = document.createElement('div');
+        segmentoEl.className = 'segmento';
+        segmentoEl.dataset.id = segmento.id;
+        
+        const tituloSegmento = document.createElement('h2');
+        tituloSegmento.className = 'segmento-titulo';
+        tituloSegmento.textContent = segmento.titulo;
+        segmentoEl.appendChild(tituloSegmento);
+        
+        const topicosContainer = document.createElement('div');
+        topicosContainer.className = 'topicos-container';
+        topicosContainer.style.display = 'none';
+        
+        segmento.topicos.forEach(topico => {
+            const topicoEl = document.createElement('div');
+            topicoEl.className = 'topico';
+            topicoEl.dataset.id = topico.id;
+            
+            const tituloTopico = document.createElement('h3');
+            tituloTopico.className = 'topico-titulo';
+            
+            const spanTitulo = document.createElement('span');
+            spanTitulo.textContent = topico.titulo;
+            tituloTopico.appendChild(spanTitulo);
+
+            // SÓ ADICIONA BOTÕES SE ESTIVER LOGADO
+            if (usuarioLogado) {
+                const botoes = document.createElement('div');
+                botoes.className = 'botoes-admin'; // Adicionei classe para você estilizar no CSS se quiser
+                botoes.style.display = 'inline-block';
+                botoes.style.marginLeft = '10px';
+
+                const btnEditar = document.createElement('span');
+                btnEditar.innerHTML = '✏️';
+                btnEditar.className = 'btn-editar';
+                btnEditar.onclick = (e) => { e.stopPropagation(); prepararEdicao(topico.id_banco, topico.texto); };
+                botoes.appendChild(btnEditar);
+
+                const btnExcluir = document.createElement('span');
+                btnExcluir.innerHTML = '🗑️';
+                btnExcluir.className = 'btn-excluir'; 
+                btnExcluir.onclick = (e) => { e.stopPropagation(); excluirDoBanco(topico.id_banco); };
+                botoes.appendChild(btnExcluir);
+
+                tituloTopico.appendChild(botoes);
+            }
+
+            topicoEl.appendChild(tituloTopico);
+            
+            if (topico.texto) {
+                const textoTopico = document.createElement('div');
+                textoTopico.className = 'topico-texto';
+                textoTopico.innerHTML = formatarLinks(topico.texto).replace(/\n/g, '<br>');
+                textoTopico.style.display = 'none';
+                topicoEl.appendChild(textoTopico);
+            }
+            
+            if (topico.subtopicos && topico.subtopicos.length > 0) {
+                const subtopicosContainer = document.createElement('div');
+                subtopicosContainer.className = 'subtopicos-container';
+                subtopicosContainer.style.display = 'none';
+                
+                topico.subtopicos.forEach(subtopico => {
+                    const subtopicoEl = document.createElement('div');
+                    subtopicoEl.className = 'subtopico';
+                    subtopicoEl.dataset.id = subtopico.id;
+                    
+                    const tituloSubtopico = document.createElement('h4');
+                    tituloSubtopico.className = 'subtopico-titulo';
+                    
+                    const spanSub = document.createElement('span');
+                    spanSub.textContent = subtopico.titulo;
+                    tituloSubtopico.appendChild(spanSub);
+
+                    if (usuarioLogado) {
+                        const botoesSub = document.createElement('div');
+                        botoesSub.style.display = 'inline-block';
+                        botoesSub.style.marginLeft = '10px';
+
+                        const btnEditarSub = document.createElement('span');
+                        btnEditarSub.innerHTML = '✏️';
+                        btnEditarSub.className = 'btn-editar';
+                        btnEditarSub.onclick = (e) => { e.stopPropagation(); prepararEdicao(subtopico.id_banco, subtopico.texto); };
+                        botoesSub.appendChild(btnEditarSub);
+
+                        const btnExcluirSub = document.createElement('span');
+                        btnExcluirSub.innerHTML = '🗑️';
+                        btnExcluirSub.className = 'btn-excluir';
+                        btnExcluirSub.onclick = (e) => { e.stopPropagation(); excluirDoBanco(subtopico.id_banco); };
+                        botoesSub.appendChild(btnExcluirSub);
+
+                        tituloSubtopico.appendChild(botoesSub);
+                    }
+
+                    subtopicoEl.appendChild(tituloSubtopico);
+                    
+                    const textoSubtopico = document.createElement('div');
+                    textoSubtopico.className = 'subtopico-texto';
+                    textoSubtopico.innerHTML = formatarLinks(subtopico.texto).replace(/\n/g, '<br>');
+                    textoSubtopico.style.display = 'none';
+                    subtopicoEl.appendChild(textoSubtopico);
+                    subtopicosContainer.appendChild(subtopicoEl);
+                });
+                topicoEl.appendChild(subtopicosContainer);
+            }
+            topicosContainer.appendChild(topicoEl);
+        });
+        segmentoEl.appendChild(topicosContainer);
+        container.appendChild(segmentoEl);
+    });
+    configurarCliques(); 
+}
+
+// ... (Mantenha as funções pesquisar, mostrarResultados, navegarParaResultado, limparPesquisa, alternarTema exatamente como estavam) ...
+
 function normalizarTexto(texto) {
     if (!texto) return '';
     return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -253,119 +392,6 @@ function carregarTemaSalvo() {
         document.body.classList.add('dark-mode');
         document.querySelector('.icone-tema').textContent = '🌙';
     }
-}
-
-// carregar segmentos e configurar interações
-function carregarSegmentos() {
-    const container = document.getElementById('segmentosContainer');
-    if (!container) return;
-    container.innerHTML = ''; 
-    
-    dadosWiki.segmentos.forEach(segmento => {
-        const segmentoEl = document.createElement('div');
-        segmentoEl.className = 'segmento';
-        segmentoEl.dataset.id = segmento.id;
-        
-        const tituloSegmento = document.createElement('h2');
-        tituloSegmento.className = 'segmento-titulo';
-        tituloSegmento.textContent = segmento.titulo;
-        segmentoEl.appendChild(tituloSegmento);
-        
-        const topicosContainer = document.createElement('div');
-        topicosContainer.className = 'topicos-container';
-        topicosContainer.style.display = 'none';
-        
-        segmento.topicos.forEach(topico => {
-            const topicoEl = document.createElement('div');
-            topicoEl.className = 'topico';
-            topicoEl.dataset.id = topico.id;
-            
-            const tituloTopico = document.createElement('h3');
-            tituloTopico.className = 'topico-titulo';
-            
-            const spanTitulo = document.createElement('span');
-            spanTitulo.textContent = topico.titulo;
-            tituloTopico.appendChild(spanTitulo);
-
-            const botoes = document.createElement('div');
-            botoes.style.display = 'inline-block';
-            botoes.style.marginLeft = '10px';
-
-            const btnEditar = document.createElement('span');
-            btnEditar.innerHTML = '✏️';
-            btnEditar.className = 'btn-editar';
-            btnEditar.style.marginRight = '8px';
-            btnEditar.onclick = (e) => { e.stopPropagation(); prepararEdicao(topico.id_banco, topico.texto); };
-            botoes.appendChild(btnEditar);
-
-            const btnExcluir = document.createElement('span');
-            btnExcluir.innerHTML = '🗑️';
-            btnExcluir.className = 'btn-excluir'; 
-            btnExcluir.onclick = (e) => { e.stopPropagation(); excluirDoBanco(topico.id_banco); };
-            botoes.appendChild(btnExcluir);
-
-            tituloTopico.appendChild(botoes);
-            topicoEl.appendChild(tituloTopico);
-            
-            if (topico.texto) {
-                const textoTopico = document.createElement('div');
-                textoTopico.className = 'topico-texto';
-                textoTopico.innerHTML = formatarLinks(topico.texto).replace(/\n/g, '<br>');
-                textoTopico.style.display = 'none';
-                topicoEl.appendChild(textoTopico);
-            }
-            
-            if (topico.subtopicos && topico.subtopicos.length > 0) {
-                const subtopicosContainer = document.createElement('div');
-                subtopicosContainer.className = 'subtopicos-container';
-                subtopicosContainer.style.display = 'none';
-                
-                topico.subtopicos.forEach(subtopico => {
-                    const subtopicoEl = document.createElement('div');
-                    subtopicoEl.className = 'subtopico';
-                    subtopicoEl.dataset.id = subtopico.id;
-                    
-                    const tituloSubtopico = document.createElement('h4');
-                    tituloSubtopico.className = 'subtopico-titulo';
-                    
-                    const spanSub = document.createElement('span');
-                    spanSub.textContent = subtopico.titulo;
-                    tituloSubtopico.appendChild(spanSub);
-
-                    const botoesSub = document.createElement('div');
-                    botoesSub.style.display = 'inline-block';
-                    botoesSub.style.marginLeft = '10px';
-
-                    const btnEditarSub = document.createElement('span');
-                    btnEditarSub.innerHTML = '✏️';
-                    btnEditarSub.className = 'btn-editar';
-                    btnEditarSub.style.marginRight = '8px';
-                    btnEditarSub.onclick = (e) => { e.stopPropagation(); prepararEdicao(subtopico.id_banco, subtopico.texto); };
-                    botoesSub.appendChild(btnEditarSub);
-
-                    const btnExcluirSub = document.createElement('span');
-                    btnExcluirSub.innerHTML = '🗑️';
-                    btnExcluirSub.className = 'btn-excluir';
-                    btnExcluirSub.onclick = (e) => { e.stopPropagation(); excluirDoBanco(subtopico.id_banco); };
-                    botoesSub.appendChild(btnExcluirSub);
-
-                    tituloSubtopico.appendChild(botoesSub);
-                    subtopicoEl.appendChild(tituloSubtopico);
-                    
-                    const textoSubtopico = document.createElement('div');
-                    textoSubtopico.className = 'subtopico-texto';
-                    textoSubtopico.innerHTML = formatarLinks(subtopico.texto).replace(/\n/g, '<br>');
-                    textoSubtopico.style.display = 'none';
-                    subtopicoEl.appendChild(textoSubtopico);
-                    subtopicosContainer.appendChild(subtopicoEl);
-                });
-                topicoEl.appendChild(subtopicosContainer);
-            }
-            topicosContainer.appendChild(topicoEl);
-        });
-        segmentoEl.appendChild(topicosContainer);
-        container.appendChild(segmentoEl);
-    });
 }
 
 function configurarCliques() {

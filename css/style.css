@@ -74,15 +74,14 @@ CABECALHO
     transition: var(--transition);
 }
 
-/* CORREÇÃO MODO ESCURO / PESQUISA: Texto escuro no fundo branco */
 .barra-pesquisa:focus {
     outline: none;
     background: white;
-    color: #121212 !important; /* Força cor escura para leitura independente do modo */
+    color: #121212 !important;
 }
 
 /* ==================================================
-CONTEÚDO E HIERARQUIA (ESTABILIDADE VISUAL)
+CONTEÚDO E HIERARQUIA
 ================================================== */
 .conteudo-principal {
     width: 100%;
@@ -99,12 +98,10 @@ CONTEÚDO E HIERARQUIA (ESTABILIDADE VISUAL)
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
-    /* CORREÇÃO TAMANHO: Garante que o container não mude de largura */
     width: 100%; 
     display: block;
 }
 
-/* Setinha Indicadora */
 .segmento-titulo::before, 
 .topico-titulo::before, 
 .subtopico-titulo::before {
@@ -120,7 +117,6 @@ CONTEÚDO E HIERARQUIA (ESTABILIDADE VISUAL)
     transform: rotate(90deg);
 }
 
-/* Título Principal */
 .segmento-titulo {
     padding: 1.2rem 1.5rem;
     background: var(--card-light);
@@ -134,7 +130,6 @@ CONTEÚDO E HIERARQUIA (ESTABILIDADE VISUAL)
     width: 100%;
 }
 
-/* Tópicos (Nível 1) */
 .topico-titulo {
     padding: 1rem 1.5rem;
     background: rgba(0,0,0,0.02);
@@ -148,7 +143,6 @@ CONTEÚDO E HIERARQUIA (ESTABILIDADE VISUAL)
 
 body.dark-mode .topico-titulo { background: rgba(255,255,255,0.03); }
 
-/* Subtópicos (Nível 2) */
 .subtopico-titulo {
     padding: 0.8rem 1.5rem 0.8rem 3rem;
     border-bottom: 1px solid var(--border-color);
@@ -160,31 +154,50 @@ body.dark-mode .topico-titulo { background: rgba(255,255,255,0.03); }
     width: 100%;
 }
 
-/* Conteúdo de Texto */
 .topico-texto, .subtopico-texto {
     padding: 1.2rem 1.5rem 1.2rem 4rem;
     background: var(--card-light);
     font-size: 0.92rem;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-color);
-    /* CORREÇÃO: Impede que o texto force o aumento horizontal do card */
     word-break: break-word; 
 }
 
-/* BOTÕES DE AÇÃO */
+/* ==================================================
+SISTEMA DE ADMIN (LOGIN & BOTÕES)
+================================================== */
+
+/* Estilo para os modais ficarem elegantes */
+#modalLogin > div, #modalOpcoesAdmin > div, #modalAdmin > div, #modalEditar > div {
+    background: var(--card-light) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+#modalLogin input, #modalAdmin input, #modalAdmin textarea, #modalEditar textarea {
+    background: var(--background-light) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Efeito de hover nos botões de Editar/Excluir */
 .btn-editar, .btn-excluir {
-    opacity: 0;
-    margin-left: auto;
-    font-size: 0.8rem;
-    padding: 4px 8px;
-    border: none;
-    background: transparent;
+    opacity: 0; /* Escondido por padrão */
+    margin-left: 8px;
+    font-size: 0.9rem;
+    padding: 4px;
     cursor: pointer;
+    transition: var(--transition);
 }
 
 .topico-titulo:hover .btn-editar, .topico-titulo:hover .btn-excluir,
 .subtopico-titulo:hover .btn-editar, .subtopico-titulo:hover .btn-excluir {
-    opacity: 0.6;
+    opacity: 0.5; /* Aparece meio transparente ao passar o mouse */
+}
+
+.btn-editar:hover, .btn-excluir:hover {
+    opacity: 1 !important; /* Brilha ao focar no ícone */
+    transform: scale(1.2);
 }
 
 /* ==================================================
@@ -222,12 +235,9 @@ RODAPÉ SLIM
     fill: var(--text-muted) !important;
 }
 
-/* Botão Tema */
 .botao-tema {
-    justify-self: end;
     background: transparent;
     border: none;
-    outline: none;
     cursor: pointer;
     width: 40px;
     height: 40px;
