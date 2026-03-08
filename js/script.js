@@ -1,4 +1,4 @@
-// Configurações do Supabase
+// config supabase
 const SUPABASE_URL = 'https://mrzhseelzlfrdhdrmtcy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dErYTyFdVx6V5v4f-1DhGw_r08SIYey';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -6,7 +6,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let dadosWiki = { segmentos: [] };
 let usuarioLogado = null;
 
-// --- SISTEMA DE AUTENTICAÇÃO ---
+// autenticação  
 
 _supabase.auth.onAuthStateChange((event, session) => {
     usuarioLogado = session ? session.user : null;
@@ -57,7 +57,7 @@ function fecharModais() {
     });
 }
 
-// --- FUNÇÕES DE DROPDOWNS (ADIÇÃO E EDIÇÃO) ---
+// add e edit
 
 function abrirModalAdicionar() {
     preencherDropdownSegmentos('selectSegmento');
@@ -138,7 +138,7 @@ function ajustarInputsEdicao(nivel) {
     }
 }
 
-// --- FUNÇÕES DE SALVAMENTO, EDIÇÃO E EXCLUSÃO ---
+// save, edit e delete
 
 async function salvarNoBanco() {
     if (!usuarioLogado) return;
@@ -224,7 +224,7 @@ async function excluirDoBanco(id) {
     }
 }
 
-// --- CORE: CARREGAMENTO E RENDERIZAÇÃO ---
+// loading e renderização
 
 function formatarLinks(texto) {
     if (!texto) return '';
@@ -374,9 +374,9 @@ function criarBotoesAdmin(id, seg, top, sub, txt) {
     return div;
 }
 
-// --- PESQUISA E UTILITÁRIOS ---
 
-// Melhora a normalização para ignorar acentos e maiúsculas de forma eficiente
+
+// pesquisa
 function normalizarTexto(t) { 
     return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ''; 
 }
@@ -457,7 +457,6 @@ function navegarParaResultado(r) {
             }
         }
     } else {
-        // Scroll para o segmento se a busca for só por título de segmento
         setTimeout(() => segEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     }
 }
