@@ -2,51 +2,70 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wiki Suporte Consumo - Intelbras</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="images/wiki.png">
 </head>
 <body>
+
     <header class="cabecalho">
         <div class="cabecalho-esquerda">
-            <h1 onclick="window.location.reload()" class="logo-wiki">Wiki Suporte Consumo</h1>
+            <h1 onclick="resetarWiki()" class="logo-wiki">Wiki Suporte Consumo</h1>
         </div>
-        
         <div class="cabecalho-centro">
-            <input type="text" class="barra-pesquisa" id="inputPesquisa" placeholder="Pesquisar em toda wiki...">
+            <input type="text" class="barra-pesquisa" id="inputPesquisa" placeholder="Pesquisar na wiki...">
         </div>
-        
         <div class="cabecalho-direita">
-            <button class="botao-tema" id="botaoTema" aria-label="Alternar modo claro/escuro">
+            <!-- botao de tema -->
+            <button class="botao-tema" id="botaoTema" title="alternar tema">
                 <span class="icone-tema">☀️</span>
+            </button>
+            <!-- botao admin - muda dependendo do estado de login -->
+            <button class="btn-admin-header" id="btnAdminHeader" onclick="clicouAdmin()">
+                <span id="adminLabel">Admin</span>
             </button>
         </div>
     </header>
 
-    <main class="conteudo-principal">
-        <div id="resultadosPesquisa" class="resultados-pesquisa"></div>
-        
-        <div class="segmentos-container" id="segmentosContainer"></div>
-        
-        <div id="containerAdicionarLateral" class="container-admin-action">
-            <button onclick="abrirModalAdicionar()" class="btn-adicionar-novo">
-                <span>➕</span> Adicionar Novo Conteúdo
-            </button>
-        </div>
-    </main>
+    <div class="layout">
+
+        <!-- sidebar esquerda -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-loading" id="sidebarLoading">carregando...</div>
+            <div class="sidebar-conteudo" id="sidebarNav"></div>
+
+            <!-- botao de add fica no fundo da sidebar, so aparece logado -->
+            <div class="sidebar-footer" id="sidebarFooter" style="display:none">
+                <button class="btn-add-sidebar" onclick="abrirDrawer()">+ adicionar conteúdo</button>
+            </div>
+        </aside>
+
+        <!-- area de conteudo direita -->
+        <main class="area-conteudo" id="areaConteudo">
+            <div class="conteudo-vazio" id="conteudoVazio">
+                <div class="vazio-inner">
+                    <div class="vazio-icone">📖</div>
+                    <p>Selecione um tópico na barra lateral</p>
+                    <small>ou use a pesquisa pra encontrar algo</small>
+                </div>
+            </div>
+            <div id="resultadosPesquisa" class="resultados-pesquisa"></div>
+            <div id="painelConteudo" class="painel-conteudo"></div>
+        </main>
+
+    </div>
 
     <footer class="rodape">
         <div class="rodape-conteudo">
-            <p>Desenvolvido por Anderson Eduardo Bento</p>
             <div class="rodape-links">
                 <a href="https://github.com/duduarb" target="_blank" title="GitHub" class="rodape-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                     </svg>
                 </a>
                 <a href="https://www.linkedin.com/in/anderson-eduardo-bento/" target="_blank" title="LinkedIn" class="rodape-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                     </svg>
                 </a>
@@ -54,93 +73,76 @@
         </div>
     </footer>
 
-    <button onclick="gerenciarPainelAdmin()" class="btn-floating-admin" title="Configurações">⚙️</button>
-
-    <div id="modalLogin" class="modal-overlay">
-        <div class="modal-content modal-small">
-            <h3>Acesso ADMIN</h3>
-            <input type="email" id="loginEmail" placeholder="E-mail">
-            <input type="password" id="loginSenha" placeholder="Senha">
-            <button onclick="realizarLogin()" class="btn-confirmar">Entrar</button>
-            <button onclick="fecharModais()" class="btn-cancelar-text">Cancelar</button>
+    <!-- drawer de adicionar/editar - abre da direita -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="fecharDrawer()"></div>
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <h2 id="drawerTitulo">Adicionar Conteúdo</h2>
+            <button class="drawer-fechar" onclick="fecharDrawer()">✕</button>
         </div>
-    </div>
 
-    <div id="modalOpcoesAdmin" class="modal-overlay">
-        <div class="modal-content modal-small">
-            <h3>Painel de Controle</h3>
-            <button onclick="realizarLogout()" class="btn-logout">🚪 Sair (Logout)</button>
-            <hr class="divisor-modal">
-            <button onclick="fecharModais()" class="btn-cancelar-text">Fechar</button>
-        </div>
-    </div>
-
-    <div id="modalAdmin" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Novo Conteúdo</h3>
-            <div class="form-group">
-                <label>1. Escolha o Segmento:</label>
-                <select id="selectSegmento" onchange="ajustarInputsDinamicos('segmento')">
-                    <option value="">Selecione...</option>
-                    <option value="novo">+ Criar Novo Segmento</option>
-                </select>
-                <input type="text" id="addSegmentoNovo" class="input-destaque" placeholder="Nome do novo Segmento">
-            </div>
-
-            <div class="form-group">
-                <label>2. Escolha o Tópico:</label>
-                <select id="selectTopico" onchange="ajustarInputsDinamicos('topico')">
-                    <option value="">Selecione um segmento primeiro...</option>
-                </select>
-                <input type="text" id="addTopicoNovo" class="input-destaque" placeholder="Nome do novo Tópico">
-            </div>
-
-            <div class="form-group">
-                <label>3. Subtópico e Texto:</label>
-                <input type="text" id="addSubtopico" placeholder="Subtópico (ex: Instalação) - Opcional">
-                <textarea id="addTexto" placeholder="Texto do conteúdo (pode usar <br>)"></textarea>
-            </div>
-
-            <div class="modal-actions">
-                <button onclick="salvarNoBanco()" class="btn-confirmar">Salvar na Nuvem</button>
-                <button onclick="fecharModais()" class="btn-cancelar">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalEditar" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Editar Tudo</h3>
+        <div class="drawer-body">
             <input type="hidden" id="editId">
-            
-            <div class="form-group">
-                <label>Mover para Segmento:</label>
-                <select id="editSelectSegmento" onchange="ajustarInputsEdicao('segmento')"></select>
-                <input type="text" id="editSegmentoNovo" class="input-destaque" placeholder="Novo nome para este Segmento">
+
+            <div class="campo-grupo">
+                <label>Segmento</label>
+                <select id="selectSegmento" onchange="ajustarInputsDinamicos('segmento')">
+                    <option value="">selecione...</option>
+                    <option value="novo">+ criar novo segmento</option>
+                </select>
+                <input type="text" id="addSegmentoNovo" class="campo-novo" placeholder="nome do novo segmento">
             </div>
 
-            <div class="form-group">
-                <label>Mover para Tópico:</label>
-                <select id="editSelectTopico" onchange="ajustarInputsEdicao('topico')"></select>
-                <input type="text" id="editTopicoNovo" class="input-destaque" placeholder="Novo nome para este Tópico">
+            <div class="campo-grupo">
+                <label>Tópico</label>
+                <select id="selectTopico" onchange="ajustarInputsDinamicos('topico')">
+                    <option value="">selecione um segmento primeiro...</option>
+                </select>
+                <input type="text" id="addTopicoNovo" class="campo-novo" placeholder="nome do novo tópico">
             </div>
 
-            <div class="form-group">
-                <label>Subtópico:</label>
-                <input type="text" id="editSubtopico">
+            <div class="campo-grupo">
+                <label>Subtópico <span class="label-opcional">(opcional)</span></label>
+                <input type="text" id="addSubtopico" placeholder="ex: instalação, configuração...">
             </div>
 
-            <div class="form-group">
-                <label>Conteúdo:</label>
-                <textarea id="editTexto"></textarea>
+            <div class="campo-grupo">
+                <label>Conteúdo</label>
+                <textarea id="addTexto" placeholder="escreve o texto aqui..."></textarea>
             </div>
 
-            <div class="modal-actions">
-                <button onclick="confirmarEdicao()" class="btn-confirmar">Salvar Alterações</button>
-                <button onclick="fecharModais()" class="btn-cancelar">Cancelar</button>
+            <div class="drawer-acoes">
+                <button class="btn-salvar" id="btnSalvar" onclick="salvarConteudo()">Salvar</button>
+                <button class="btn-cancelar-drawer" onclick="fecharDrawer()">Cancelar</button>
             </div>
         </div>
     </div>
+
+    <!-- modal de confirmacao de logout -->
+    <div class="modal-overlay" id="modalLogout">
+        <div class="modal-box">
+            <p>sair do modo admin?</p>
+            <div class="modal-acoes">
+                <button class="btn-confirmar-modal" onclick="fazerLogout()">Sair</button>
+                <button class="btn-cancelar-modal" onclick="fecharModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- modal de confirmacao de delete -->
+    <div class="modal-overlay" id="modalDelete">
+        <div class="modal-box">
+            <p>apagar esse conteúdo?</p>
+            <small style="color:#999; display:block; margin-top:4px">isso não tem como desfazer</small>
+            <div class="modal-acoes">
+                <button class="btn-confirmar-modal btn-danger" id="btnConfirmarDelete">Apagar</button>
+                <button class="btn-cancelar-modal" onclick="fecharModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- toast de notificacao -->
+    <div class="toast" id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>

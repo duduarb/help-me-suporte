@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Wiki Intelbras</title>
+    <link rel="icon" type="image/png" href="images/wiki.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --verde: #00a859;
+            --verde-hover: #007d43;
+            --fundo: #f0f0f0;
+            --caixa: #ffffff;
+            --borda: #dddddd;
+            --texto: #1a1a1a;
+            --texto2: #555;
+            --input-bg: #fafafa;
+            --input-borda: #dddddd;
+            --sombra: rgba(0,0,0,0.08);
+        }
+
+        /* modo escuro - lido do localStorage antes de renderizar */
+        body.dark {
+            --fundo: #111111;
+            --caixa: #1c1c1c;
+            --borda: #2e2e2e;
+            --texto: #f0f0f0;
+            --texto2: #999;
+            --input-bg: #141414;
+            --input-borda: #3a3a3a;
+            --sombra: rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--fundo);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .login-box {
+            background: var(--caixa);
+            border-radius: 12px;
+            border: 1px solid var(--borda);
+            width: 90%;
+            max-width: 360px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px var(--sombra);
+        }
+
+        /* topo verde com logo */
+        .login-topo {
+            background: var(--verde);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .login-topo img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+        }
+
+        .login-topo h1 {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .login-topo p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        /* formulario */
+        .login-form {
+            padding: 1.75rem;
+        }
+
+        .campo {
+            margin-bottom: 1rem;
+        }
+
+        .campo label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--texto2);
+            margin-bottom: 5px;
+        }
+
+        .campo input {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            border: 1.5px solid var(--input-borda);
+            border-radius: 7px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            color: var(--texto);
+            background: var(--input-bg);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .campo input:focus {
+            border-color: var(--verde);
+            background: var(--caixa);
+            box-shadow: 0 0 0 3px rgba(0,168,89,0.12);
+        }
+
+        .btn-entrar {
+            width: 100%;
+            padding: 0.7rem;
+            background: var(--verde);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 0.5rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-entrar:hover { background: var(--verde-hover); }
+        .btn-entrar:active { transform: scale(0.98); }
+
+        /* mensagem de erro */
+        .erro-msg {
+            display: none;
+            background: #fff0f0;
+            border: 1px solid #ffcccc;
+            border-radius: 6px;
+            padding: 0.6rem 0.875rem;
+            font-size: 0.8rem;
+            color: #c0392b;
+            margin-top: 0.75rem;
+            text-align: center;
+        }
+
+        body.dark .erro-msg {
+            background: #2a1010;
+            border-color: #6b2020;
+            color: #ff8080;
+        }
+
+        .voltar {
+            display: block;
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.8rem;
+            color: var(--texto2);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .voltar:hover { color: var(--verde); }
+    </style>
+    <!-- aplica o tema antes de renderizar pra nao dar flash branco -->
+    <script>
+        if (localStorage.getItem('tema') === 'escuro') {
+            document.documentElement.classList.add('dark-pre');
+            document.addEventListener('DOMContentLoaded', () => {
+                document.body.classList.add('dark');
+            });
+        }
+    </script>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="login-topo">
+            <img src="images/wiki.png" alt="logo wiki">
+            <h1>Wiki Suporte Consumo</h1>
+            <p>acesso restrito — só admin entra aqui</p>
+        </div>
+
+        <div class="login-form">
+            <div class="campo">
+                <label>E-mail</label>
+                <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
+            </div>
+            <div class="campo">
+                <label>Senha</label>
+                <input type="password" id="loginSenha" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <button class="btn-entrar" id="btnEntrar" onclick="fazerLogin()">Entrar</button>
+
+            <div class="erro-msg" id="erroMsg"></div>
+
+            <a href="index.html" class="voltar">← voltar pra wiki</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://mrzhseelzlfrdhdrmtcy.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_dErYTyFdVx6V5v4f-1DhGw_r08SIYey';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // se ja ta logado manda direto pra wiki
+        _supabase.auth.getSession().then(({ data }) => {
+            if (data.session) window.location.href = 'index.html';
+        });
+
+        async function fazerLogin() {
+            const btn = document.getElementById('btnEntrar');
+            const erro = document.getElementById('erroMsg');
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            if (!email || !senha) {
+                mostrarErro('preenche email e senha cara');
+                return;
+            }
+
+            btn.textContent = 'entrando...';
+            btn.disabled = true;
+            erro.style.display = 'none';
+
+            const { error } = await _supabase.auth.signInWithPassword({ email, password: senha });
+
+            if (error) {
+                mostrarErro('email ou senha errados');
+                btn.textContent = 'Entrar';
+                btn.disabled = false;
+            } else {
+                btn.textContent = 'redirecionando...';
+                window.location.href = 'index.html';
+            }
+        }
+
+        function mostrarErro(msg) {
+            const erro = document.getElementById('erroMsg');
+            erro.textContent = msg;
+            erro.style.display = 'block';
+        }
+
+        // enter no campo de senha faz login
+        document.addEventListener('DOMContentLoaded', () => {
+            // aplica tema salvo
+            if (localStorage.getItem('tema') === 'escuro') {
+                document.body.classList.add('dark');
+            }
+
+            document.getElementById('loginSenha').onkeydown = (e) => {
+                if (e.key === 'Enter') fazerLogin();
+            };
+        });
+    </script>
+</body>
+</html>

@@ -5,518 +5,675 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dadosWiki = { segmentos: [] };
 let usuarioLogado = null;
+let idParaDeletar = null; // guarda o id do item que vai ser deletado
 
-// autenticação  
-
+// verifica estado de autenticacao
 _supabase.auth.onAuthStateChange((event, session) => {
     usuarioLogado = session ? session.user : null;
-    
-    const btnAddContainer = document.getElementById('containerAdicionarLateral');
-    if (btnAddContainer) btnAddContainer.style.display = usuarioLogado ? 'flex' : 'none';
+    atualizarBotaoAdmin();
 
-    if (dadosWiki.segmentos.length > 0) carregarSegmentos();
+    const footer = document.getElementById('sidebarFooter');
+    if (footer) footer.style.display = usuarioLogado ? 'block' : 'none';
+
+    // rerenderiza pra mostrar/esconder botoes de editar
+    if (dadosWiki.segmentos.length > 0) renderizarSidebar();
 });
 
-async function realizarLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginSenha').value;
+// atualiza o botao de admin no header
+function atualizarBotaoAdmin() {
+    const btn = document.getElementById('btnAdminHeader');
+    const label = document.getElementById('adminLabel');
+    if (!btn) return;
 
-    const { data, error } = await _supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-    });
-
-    if (error) {
-        alert("Erro no login: " + error.message);
-    } else {
-        fecharModais();
-        alert("Bem-vindo, Admin!");
-    }
-}
-
-async function realizarLogout() {
-    await _supabase.auth.signOut();
-    fecharModais();
-    alert("Você saiu do modo administrativo.");
-    location.reload();
-}
-
-function gerenciarPainelAdmin() {
     if (usuarioLogado) {
-        document.getElementById('modalOpcoesAdmin').style.display = 'flex';
+        btn.classList.add('logado');
+        label.textContent = 'Sair';
     } else {
-        document.getElementById('modalLogin').style.display = 'flex';
+        btn.classList.remove('logado');
+        label.textContent = 'Login';
     }
 }
 
-function fecharModais() {
-    const modais = ['modalLogin', 'modalOpcoesAdmin', 'modalAdmin', 'modalEditar'];
-    modais.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = 'none';
-    });
+// clicou no botao admin do header
+function clicouAdmin() {
+    if (usuarioLogado) {
+        // pede confirmacao antes de sair
+        abrirModal('modalLogout');
+    } else {
+        // manda pra pagina de login
+        window.location.href = 'login.html';
+    }
 }
 
-// add e edit
+async function fazerLogout() {
+    await _supabase.auth.signOut();
+    fecharModal();
+    toast('saiu do modo admin', 'sucesso');
+    setTimeout(() => location.reload(), 800);
+}
 
-function abrirModalAdicionar() {
+// reseta a wiki pro estado inicial
+function resetarWiki() {
+    document.getElementById('painelConteudo').style.display = 'none';
+    document.getElementById('conteudoVazio').style.display = 'flex';
+    document.getElementById('resultadosPesquisa').style.display = 'none';
+    limparPesquisa();
+    marcarAtivo(null);
+}
+
+// ----- drawer de adicionar/editar -----
+
+let modoEdicao = false; // controla se ta adicionando ou editando
+
+function abrirDrawer(dadosEdicao = null) {
+    modoEdicao = !!dadosEdicao;
+    const titulo = document.getElementById('drawerTitulo');
+    const btnSalvar = document.getElementById('btnSalvar');
+
+    if (modoEdicao) {
+        titulo.textContent = 'Editar Conteúdo';
+        btnSalvar.textContent = 'Salvar Alterações';
+        preencherDrawerEdicao(dadosEdicao);
+    } else {
+        titulo.textContent = 'Adicionar Conteúdo';
+        btnSalvar.textContent = 'Salvar';
+        limparDrawer();
+        preencherDropdownSegmentos('selectSegmento');
+    }
+
+    document.getElementById('drawer').classList.add('aberto');
+    document.getElementById('drawerOverlay').classList.add('aberto');
+}
+
+function fecharDrawer() {
+    document.getElementById('drawer').classList.remove('aberto');
+    document.getElementById('drawerOverlay').classList.remove('aberto');
+}
+
+// limpa os campos do drawer
+function limparDrawer() {
+    document.getElementById('editId').value = '';
+    document.getElementById('selectSegmento').value = '';
+    document.getElementById('selectTopico').innerHTML = '<option value="">selecione um segmento primeiro...</option>';
+    document.getElementById('addSegmentoNovo').style.display = 'none';
+    document.getElementById('addSegmentoNovo').value = '';
+    document.getElementById('addTopicoNovo').style.display = 'none';
+    document.getElementById('addTopicoNovo').value = '';
+    document.getElementById('addSubtopico').value = '';
+    document.getElementById('addTexto').value = '';
+}
+
+// preenche o drawer com dados pra edicao
+function preencherDrawerEdicao(d) {
+    document.getElementById('editId').value = d.id;
     preencherDropdownSegmentos('selectSegmento');
-    document.getElementById('modalOpcoesAdmin').style.display = 'none';
-    document.getElementById('modalAdmin').style.display = 'flex';
+    document.getElementById('selectSegmento').value = d.segmento;
+    preencherDropdownTopicos('selectTopico', d.segmento);
+    document.getElementById('selectTopico').value = d.topico;
+    document.getElementById('addSubtopico').value = d.subtopico || '';
+    document.getElementById('addTexto').value = d.texto || '';
+    document.getElementById('addSegmentoNovo').style.display = 'none';
+    document.getElementById('addTopicoNovo').style.display = 'none';
 }
+
+// ----- dropdowns dinâmicos -----
 
 function preencherDropdownSegmentos(idSelect) {
     const select = document.getElementById(idSelect);
-    const labelNovo = idSelect === 'selectSegmento' ? '+ Criar Novo Segmento' : '+ Mudar nome do Segmento';
-    select.innerHTML = `<option value="">Selecione...</option><option value="novo">${labelNovo}</option>`;
-    
-    const nomesSegmentos = [...new Set(dadosWiki.segmentos.map(s => s.titulo))].sort();
-    nomesSegmentos.forEach(nome => {
-        const option = document.createElement('option');
-        option.value = nome;
-        option.textContent = nome;
-        select.appendChild(option);
+    select.innerHTML = `<option value="">selecione...</option><option value="novo">+ criar novo segmento</option>`;
+    [...new Set(dadosWiki.segmentos.map(s => s.titulo))].sort().forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = nome;
+        select.appendChild(opt);
     });
 }
 
 function preencherDropdownTopicos(idSelect, nomeSegmento) {
     const select = document.getElementById(idSelect);
-    const labelNovo = idSelect === 'selectTopico' ? '+ Criar Novo Tópico' : '+ Mudar nome do Tópico';
-    select.innerHTML = `<option value="">Selecione...</option><option value="novo">${labelNovo}</option>`;
-    
+    select.innerHTML = `<option value="">selecione...</option><option value="novo">+ criar novo topico</option>`;
     if (!nomeSegmento) return;
-
-    const segmento = dadosWiki.segmentos.find(s => s.titulo === nomeSegmento);
-    if (segmento) {
-        const nomesTopicos = [...new Set(segmento.topicos.map(t => t.titulo))].sort();
-        nomesTopicos.forEach(nome => {
-            const option = document.createElement('option');
-            option.value = nome;
-            option.textContent = nome;
-            select.appendChild(option);
+    const seg = dadosWiki.segmentos.find(s => s.titulo === nomeSegmento);
+    if (seg) {
+        [...new Set(seg.topicos.map(t => t.titulo))].sort().forEach(nome => {
+            const opt = document.createElement('option');
+            opt.value = opt.textContent = nome;
+            select.appendChild(opt);
         });
     }
 }
 
 function ajustarInputsDinamicos(nivel) {
     if (nivel === 'segmento') {
-        const selectSeg = document.getElementById('selectSegmento');
-        const inputNovoSeg = document.getElementById('addSegmentoNovo');
-        if (selectSeg.value === 'novo') {
-            inputNovoSeg.style.display = 'block';
-            const selectTop = document.getElementById('selectTopico');
-            selectTop.innerHTML = '<option value="novo">+ Criar Novo Tópico</option>';
-            selectTop.value = 'novo';
+        const segSel = document.getElementById('selectSegmento');
+        const inputSeg = document.getElementById('addSegmentoNovo');
+        if (segSel.value === 'novo') {
+            inputSeg.style.display = 'block';
+            document.getElementById('selectTopico').innerHTML = '<option value="novo">+ criar novo topico</option>';
             ajustarInputsDinamicos('topico');
         } else {
-            inputNovoSeg.style.display = 'none';
-            preencherDropdownTopicos('selectTopico', selectSeg.value);
+            inputSeg.style.display = 'none';
+            preencherDropdownTopicos('selectTopico', segSel.value);
+            document.getElementById('addTopicoNovo').style.display = 'none';
         }
     } else {
-        const selectTop = document.getElementById('selectTopico');
-        document.getElementById('addTopicoNovo').style.display = (selectTop.value === 'novo') ? 'block' : 'none';
+        const topSel = document.getElementById('selectTopico');
+        document.getElementById('addTopicoNovo').style.display = topSel.value === 'novo' ? 'block' : 'none';
     }
 }
 
-function ajustarInputsEdicao(nivel) {
-    if (nivel === 'segmento') {
-        const selectSeg = document.getElementById('editSelectSegmento');
-        const inputNovoSeg = document.getElementById('editSegmentoNovo');
-        if (selectSeg.value === 'novo') {
-            inputNovoSeg.style.display = 'block';
-            const selectTop = document.getElementById('editSelectTopico');
-            selectTop.innerHTML = '<option value="novo">+ Mudar nome do Tópico</option>';
-            selectTop.value = 'novo';
-            ajustarInputsEdicao('topico');
-        } else {
-            inputNovoSeg.style.display = 'none';
-            preencherDropdownTopicos('editSelectTopico', selectSeg.value);
-        }
-    } else {
-        const selectTop = document.getElementById('editSelectTopico');
-        document.getElementById('editTopicoNovo').style.display = (selectTop.value === 'novo') ? 'block' : 'none';
-    }
-}
+// ----- salvar conteudo (add ou edit) -----
 
-// save, edit e delete
-
-async function salvarNoBanco() {
-    if (!usuarioLogado) return;
-
+async function salvarConteudo() {
+    const btn = document.getElementById('btnSalvar');
     const segSel = document.getElementById('selectSegmento').value;
-    const segNovo = document.getElementById('addSegmentoNovo').value;
     const topSel = document.getElementById('selectTopico').value;
-    const topNovo = document.getElementById('addTopicoNovo').value;
+    const seg = segSel === 'novo' ? document.getElementById('addSegmentoNovo').value.trim() : segSel;
+    const top = topSel === 'novo' ? document.getElementById('addTopicoNovo').value.trim() : topSel;
+    const sub = document.getElementById('addSubtopico').value.trim();
+    const txt = document.getElementById('addTexto').value.trim();
 
-    const finalSegmento = segSel === 'novo' ? segNovo : segSel;
-    const finalTopico = topSel === 'novo' ? topNovo : topSel;
-    const finalSubtopico = document.getElementById('addSubtopico').value;
-    const finalTexto = document.getElementById('addTexto').value;
-
-    if (!finalSegmento || !finalTopico || !finalTexto) {
-        alert("Por favor, preencha Segmento, Tópico e Texto.");
+    if (!seg || !top || !txt) {
+        toast('preenche segmento, tópico e o texto', 'erro');
         return;
     }
 
-    const { error } = await _supabase.from('wiki_conteudos').insert([{
-        segmento: finalSegmento,
-        topico: finalTopico,
-        subtopico: finalSubtopico,
-        texto: finalTexto
-    }]);
+    btn.textContent = 'salvando...';
+    btn.disabled = true;
 
-    if (!error) {
-        alert("Salvo com sucesso!");
-        location.reload();
+    let error;
+
+    if (modoEdicao) {
+        // edita o registro existente
+        const id = document.getElementById('editId').value;
+        ({ error } = await _supabase.from('wiki_conteudos').update({
+            segmento: seg, topico: top, subtopico: sub, texto: txt
+        }).eq('id', id));
     } else {
-        alert("Erro ao salvar: " + error.message);
+        // insere novo registro
+        ({ error } = await _supabase.from('wiki_conteudos').insert([{
+            segmento: seg, topico: top, subtopico: sub, texto: txt
+        }]));
+    }
+
+    if (error) {
+        toast('erro ao salvar: ' + error.message, 'erro');
+        btn.textContent = modoEdicao ? 'Salvar Alterações' : 'Salvar';
+        btn.disabled = false;
+    } else {
+        toast(modoEdicao ? 'atualizado!' : 'salvo!', 'sucesso');
+        fecharDrawer();
+        setTimeout(() => location.reload(), 700);
     }
 }
 
-function prepararEdicao(id, segmentoAtual, topicoAtual, subtopico, texto) {
-    document.getElementById('editId').value = id;
-    preencherDropdownSegmentos('editSelectSegmento');
-    document.getElementById('editSelectSegmento').value = segmentoAtual;
-    preencherDropdownTopicos('editSelectTopico', segmentoAtual);
-    document.getElementById('editSelectTopico').value = topicoAtual;
-    document.getElementById('editSubtopico').value = subtopico || '';
-    document.getElementById('editTexto').value = texto;
-    document.getElementById('editSegmentoNovo').style.display = 'none';
-    document.getElementById('editTopicoNovo').style.display = 'none';
-    document.getElementById('modalEditar').style.display = 'flex';
-}
+// ----- deletar -----
 
-async function confirmarEdicao() {
-    if (!usuarioLogado) return;
-    const id = document.getElementById('editId').value;
-    const segSel = document.getElementById('editSelectSegmento').value;
-    const topSel = document.getElementById('editSelectTopico').value;
-    const finalSeg = segSel === 'novo' ? document.getElementById('editSegmentoNovo').value : segSel;
-    const finalTop = topSel === 'novo' ? document.getElementById('editTopicoNovo').value : topSel;
+function confirmarDelete(id) {
+    idParaDeletar = id;
+    abrirModal('modalDelete');
 
-    if (!finalSeg || !finalTop) {
-        alert("Segmento e Tópico são obrigatórios.");
-        return;
-    }
-
-    const dadosAtualizados = {
-        segmento: finalSeg,
-        topico: finalTop,
-        subtopico: document.getElementById('editSubtopico').value,
-        texto: document.getElementById('editTexto').value
+    // configura o botao de confirmar
+    document.getElementById('btnConfirmarDelete').onclick = async () => {
+        const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', idParaDeletar);
+        fecharModal();
+        if (!error) {
+            toast('apagado!', 'sucesso');
+            setTimeout(() => location.reload(), 700);
+        } else {
+            toast('erro ao apagar', 'erro');
+        }
     };
-
-    const { error } = await _supabase.from('wiki_conteudos').update(dadosAtualizados).eq('id', id);
-
-    if (!error) {
-        alert("Atualizado com sucesso!");
-        location.reload();
-    } else {
-        alert("Erro ao atualizar: " + error.message);
-    }
 }
 
-async function excluirDoBanco(id) {
-    if (!usuarioLogado) return;
-    if (confirm("Tem certeza que deseja apagar esse conteúdo?")) {
-        const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', id);
-        if (!error) location.reload();
-    }
+// ----- modais simples -----
+
+function abrirModal(id) {
+    document.getElementById(id).classList.add('aberto');
 }
 
-// loading e renderização
+function fecharModal() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('aberto'));
+}
+
+// clique fora fecha o modal
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay')) fecharModal();
+});
+
+// ----- toast -----
+
+let toastTimer = null;
+
+function toast(msg, tipo = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast visivel ' + tipo;
+
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        el.classList.remove('visivel');
+    }, 2800);
+}
+
+// ----- carregar e renderizar -----
 
 function formatarLinks(texto) {
     if (!texto) return '';
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return texto.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
+    return texto.replace(/(https?:\/\/[^\s]+)/g, url => `<a href="${url}" target="_blank">${url}</a>`);
+}
+
+function slugify(str) {
+    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-');
 }
 
 async function carregarDados() {
+    const loading = document.getElementById('sidebarLoading');
     const { data, error } = await _supabase.from('wiki_conteudos').select('*').order('segmento', { ascending: true });
-    
-    if (data) {
-        const organizado = { segmentos: [] };
-        data.forEach(item => {
-            let seg = organizado.segmentos.find(s => s.titulo === item.segmento);
-            if (!seg) {
-                seg = { id: item.segmento.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-'), titulo: item.segmento, topicos: [] };
-                organizado.segmentos.push(seg);
-            }
-            let top = seg.topicos.find(t => t.titulo === item.topico);
-            if (!top) {
-                top = { 
-                    id_banco: item.id, 
-                    id: item.topico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-'), 
-                    titulo: item.topico, 
-                    texto: item.subtopico ? '' : item.texto, 
-                    subtopicos: [] 
-                };
-                seg.topicos.push(top);
-            }
-            if (item.subtopico) {
-                top.subtopicos.push({
-                    id_banco: item.id, 
-                    id: item.subtopico.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ /g, '-'),
-                    titulo: item.subtopico,
-                    texto: item.texto
-                });
-            }
-        });
-        dadosWiki = organizado;
-        carregarSegmentos(); 
+
+    if (loading) loading.style.display = 'none';
+
+    if (error || !data) {
+        if (loading) { loading.style.display = 'block'; loading.textContent = 'erro ao carregar :('; }
+        return;
     }
-}
 
-function carregarSegmentos() {
-    const container = document.getElementById('segmentosContainer');
-    if (!container) return;
-    container.innerHTML = ''; 
-    
-    dadosWiki.segmentos.forEach(segmento => {
-        const segmentoEl = document.createElement('div');
-        segmentoEl.className = 'segmento';
-        segmentoEl.dataset.id = segmento.id;
-        
-        const tituloSegmento = document.createElement('h2');
-        tituloSegmento.className = 'segmento-titulo';
-        tituloSegmento.textContent = segmento.titulo;
-        segmentoEl.appendChild(tituloSegmento);
-        
-        const topicosContainer = document.createElement('div');
-        topicosContainer.className = 'topicos-container';
-        topicosContainer.style.display = 'none';
-        
-        segmento.topicos.forEach(topico => {
-            const topicoEl = document.createElement('div');
-            topicoEl.className = 'topico';
-            topicoEl.dataset.id = topico.id;
-            
-            const tituloTopico = document.createElement('h3');
-            tituloTopico.className = 'topico-titulo';
-            tituloTopico.innerHTML = `<span>${topico.titulo}</span>`;
+    const organizado = { segmentos: [] };
 
-            if (usuarioLogado) {
-                const bts = criarBotoesAdmin(topico.id_banco, segmento.titulo, topico.titulo, '', topico.texto);
-                tituloTopico.appendChild(bts);
-            }
+    data.forEach(item => {
+        let seg = organizado.segmentos.find(s => s.titulo === item.segmento);
+        if (!seg) {
+            seg = { id: slugify(item.segmento), titulo: item.segmento, topicos: [] };
+            organizado.segmentos.push(seg);
+        }
 
-            topicoEl.appendChild(tituloTopico);
-            
-            if (topico.texto) {
-                const textoTopico = document.createElement('div');
-                textoTopico.className = 'topico-texto';
-                textoTopico.innerHTML = formatarLinks(topico.texto).replace(/\n/g, '<br>');
-                textoTopico.style.display = 'none';
-                topicoEl.appendChild(textoTopico);
-            }
-            
-            if (topico.subtopicos.length > 0) {
-                const subContainer = document.createElement('div');
-                subContainer.className = 'subtopicos-container';
-                subContainer.style.display = 'none';
-                
-                topico.subtopicos.forEach(sub => {
-                    const subEl = document.createElement('div');
-                    subEl.className = 'subtopico';
-                    subEl.dataset.id = sub.id; // IMPORTANTE: Adicionado ID no subtopico
-                    const h4 = document.createElement('h4');
-                    h4.className = 'subtopico-titulo';
-                    h4.innerHTML = `<span>${sub.titulo}</span>`;
+        let top = seg.topicos.find(t => t.titulo === item.topico);
+        if (!top) {
+            top = {
+                id_banco: item.id,
+                id: slugify(item.topico),
+                titulo: item.topico,
+                texto: item.subtopico ? '' : item.texto,
+                subtopicos: []
+            };
+            seg.topicos.push(top);
+        }
 
-                    if (usuarioLogado) {
-                        const btsS = criarBotoesAdmin(sub.id_banco, segmento.titulo, topico.titulo, sub.titulo, sub.texto);
-                        h4.appendChild(btsS);
-                    }
-
-                    subEl.appendChild(h4);
-                    const stxt = document.createElement('div');
-                    stxt.className = 'subtopico-texto';
-                    stxt.innerHTML = formatarLinks(sub.texto).replace(/\n/g, '<br>');
-                    stxt.style.display = 'none';
-                    subEl.appendChild(stxt);
-                    subContainer.appendChild(subEl);
-                });
-                topicoEl.appendChild(subContainer);
-            }
-            topicosContainer.appendChild(topicoEl);
-        });
-        segmentoEl.appendChild(topicosContainer);
-        container.appendChild(segmentoEl);
+        if (item.subtopico) {
+            top.subtopicos.push({
+                id_banco: item.id,
+                id: slugify(item.subtopico),
+                titulo: item.subtopico,
+                texto: item.texto
+            });
+        }
     });
-    configurarCliques(); 
+
+    dadosWiki = organizado;
+    renderizarSidebar();
 }
 
-function criarBotoesAdmin(id, seg, top, sub, txt) {
-    const div = document.createElement('div');
-    div.className = 'botoes-admin';
-    div.style.display = 'inline-block';
-    div.style.marginLeft = '15px';
+// monta a sidebar
+function renderizarSidebar() {
+    const nav = document.getElementById('sidebarNav');
+    if (!nav) return;
+    nav.innerHTML = '';
 
-    const edit = document.createElement('span');
-    edit.innerHTML = '✏️';
-    edit.className = 'btn-editar';
-    edit.onclick = (e) => { 
-        e.stopPropagation(); 
-        prepararEdicao(id, seg, top, sub, txt); 
-    };
-    
-    const del = document.createElement('span');
-    del.innerHTML = '🗑️';
-    del.className = 'btn-excluir';
-    del.onclick = (e) => { 
-        e.stopPropagation(); 
-        excluirDoBanco(id); 
-    };
+    dadosWiki.segmentos.forEach(seg => {
+        const segEl = document.createElement('div');
+        segEl.className = 'sidebar-segmento';
+        segEl.dataset.id = seg.id;
 
-    div.appendChild(edit);
-    div.appendChild(del);
-    return div;
+        const titulo = document.createElement('button');
+        titulo.className = 'sidebar-seg-titulo';
+        titulo.innerHTML = `<span class="seta">▸</span> ${seg.titulo}`;
+        titulo.onclick = () => segEl.classList.toggle('aberto');
+
+        const lista = document.createElement('div');
+        lista.className = 'sidebar-topicos';
+
+        seg.topicos.forEach(top => {
+            const topEl = document.createElement('div');
+            topEl.className = 'sidebar-topico';
+            topEl.dataset.topId = top.id;
+            topEl.textContent = top.titulo;
+            topEl.onclick = () => abrirTopico(seg, top, topEl);
+            lista.appendChild(topEl);
+
+            // subtopicos aparecem embaixo do topico na sidebar
+            top.subtopicos.forEach(sub => {
+                const subEl = document.createElement('div');
+                subEl.className = 'sidebar-subtopico';
+                subEl.dataset.subId = sub.id;
+                subEl.textContent = sub.titulo;
+                subEl.onclick = () => abrirSubtopico(seg, top, sub, subEl);
+                lista.appendChild(subEl);
+            });
+        });
+
+        segEl.appendChild(titulo);
+        segEl.appendChild(lista);
+        nav.appendChild(segEl);
+    });
 }
 
+// abre o topico no painel da direita
+function abrirTopico(seg, top, elClicado) {
+    marcarAtivo(elClicado);
 
+    const painel = document.getElementById('painelConteudo');
+    const vazio = document.getElementById('conteudoVazio');
+    const resultados = document.getElementById('resultadosPesquisa');
 
-// pesquisa
-function normalizarTexto(t) { 
-    return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ''; 
+    vazio.style.display = 'none';
+    resultados.style.display = 'none';
+    painel.style.display = 'block';
+
+    // breadcrumb
+    let html = `
+        <div class="painel-breadcrumb">
+            <span class="breadcrumb-link" onclick="abrirSegmento('${seg.id}')">${seg.titulo}</span>
+            <span class="sep">›</span>
+            <span>${top.titulo}</span>
+        </div>
+        <div class="painel-topo">
+            <h2 class="painel-titulo">${top.titulo}</h2>
+            ${usuarioLogado ? btnsAdminHtml(top.id_banco, seg.titulo, top.titulo, '', top.texto) : ''}
+        </div>
+    `;
+
+    if (top.texto) {
+        html += `<div class="painel-texto">${formatarLinks(top.texto).replace(/\n/g, '<br>')}</div>`;
+    }
+
+    // subtopicos
+    top.subtopicos.forEach(sub => {
+        html += `
+            <div class="painel-sub" id="sub-${sub.id}">
+                <div class="painel-sub-topo">
+                    <div class="painel-sub-titulo">${sub.titulo}</div>
+                    ${usuarioLogado ? btnsAdminHtml(sub.id_banco, seg.titulo, top.titulo, sub.titulo, sub.texto) : ''}
+                </div>
+                <div class="painel-sub-texto">${formatarLinks(sub.texto).replace(/\n/g, '<br>')}</div>
+            </div>
+        `;
+    });
+
+    painel.innerHTML = html;
+    document.getElementById('areaConteudo').scrollTop = 0;
+}
+
+// abre o topico e da scroll pro subtopico
+function abrirSubtopico(seg, top, sub, elClicado) {
+    marcarAtivo(elClicado);
+
+    const painel = document.getElementById('painelConteudo');
+    const vazio = document.getElementById('conteudoVazio');
+    const resultados = document.getElementById('resultadosPesquisa');
+
+    vazio.style.display = 'none';
+    resultados.style.display = 'none';
+    painel.style.display = 'block';
+
+    // mostra so o subtopico selecionado, nao o topico inteiro
+    painel.innerHTML = `
+        <div class="painel-breadcrumb">
+            <span class="breadcrumb-link" onclick="abrirSegmento('${seg.id}')">${seg.titulo}</span>
+            <span class="sep">›</span>
+            <span class="breadcrumb-link" onclick="reabrirTopico('${seg.id}', '${top.id}')">${top.titulo}</span>
+            <span class="sep">›</span>
+            <span>${sub.titulo}</span>
+        </div>
+        <div class="painel-topo">
+            <h2 class="painel-titulo">${sub.titulo}</h2>
+            ${usuarioLogado ? btnsAdminHtml(sub.id_banco, seg.titulo, top.titulo, sub.titulo, sub.texto) : ''}
+        </div>
+        <div class="painel-texto">${formatarLinks(sub.texto).replace(/\n/g, '<br>')}</div>
+    `;
+
+    document.getElementById('areaConteudo').scrollTop = 0;
+}
+
+// abre o topico pai quando clica no breadcrumb
+function reabrirTopico(segId, topId) {
+    const seg = dadosWiki.segmentos.find(s => s.id === segId);
+    if (!seg) return;
+    const top = seg.topicos.find(t => t.id === topId);
+    if (!top) return;
+    const topEl = document.querySelector(`.sidebar-topico[data-top-id="${topId}"]`);
+    abrirTopico(seg, top, topEl);
+}
+
+// expande o segmento na sidebar e mostra os topicos dele no painel
+function abrirSegmento(segId) {
+    const seg = dadosWiki.segmentos.find(s => s.id === segId);
+    if (!seg) return;
+
+    // abre na sidebar
+    const segEl = document.querySelector(`.sidebar-segmento[data-id="${segId}"]`);
+    if (segEl) segEl.classList.add('aberto');
+
+    // mostra lista de topicos do segmento no painel em vez de tela em branco
+    const painel = document.getElementById('painelConteudo');
+    const vazio = document.getElementById('conteudoVazio');
+    const resultados = document.getElementById('resultadosPesquisa');
+
+    vazio.style.display = 'none';
+    resultados.style.display = 'none';
+    painel.style.display = 'block';
+    marcarAtivo(null);
+
+    let html = `
+        <div class="painel-breadcrumb">
+            <span>${seg.titulo}</span>
+        </div>
+        <div class="painel-topo">
+            <h2 class="painel-titulo">${seg.titulo}</h2>
+        </div>
+        <ul class="lista-topicos-seg">
+    `;
+
+    seg.topicos.forEach(top => {
+        html += `<li class="item-topico-seg" onclick="abrirTopicoById('${seg.id}', '${top.id}')">
+            ${top.titulo}
+            ${top.subtopicos.length > 0 ? `<small>${top.subtopicos.length} subtópico(s)</small>` : ''}
+        </li>`;
+    });
+
+    html += '</ul>';
+    painel.innerHTML = html;
+    document.getElementById('areaConteudo').scrollTop = 0;
+}
+
+// abre topico pelo id - usado na lista de topicos do segmento
+function abrirTopicoById(segId, topId) {
+    const seg = dadosWiki.segmentos.find(s => s.id === segId);
+    if (!seg) return;
+    const top = seg.topicos.find(t => t.id === topId);
+    if (!top) return;
+    const topEl = document.querySelector(`.sidebar-topico[data-top-id="${topId}"]`);
+    abrirTopico(seg, top, topEl);
+}
+
+// gera o html dos botoes de editar/deletar no painel
+function btnsAdminHtml(id, seg, top, sub, txt) {
+    // dados em base64 pra evitar problema com aspas especiais
+    const dados = btoa(unescape(encodeURIComponent(JSON.stringify({ id, seg, top, sub, txt }))));
+    return `<div class="btns-admin">
+        <button class="btn-edit" onclick="editarItem('${dados}')">editar</button>
+        <button class="btn-del" onclick="confirmarDelete(${id})">apagar</button>
+    </div>`;
+}
+
+// decodifica os dados e abre o drawer de edicao
+function editarItem(dadosBase64) {
+    const dados = JSON.parse(decodeURIComponent(escape(atob(dadosBase64))));
+    abrirDrawer({
+        id: dados.id,
+        segmento: dados.seg,
+        topico: dados.top,
+        subtopico: dados.sub,
+        texto: dados.txt
+    });
+}
+
+// marca item ativo na sidebar
+function marcarAtivo(el) {
+    document.querySelectorAll('.sidebar-topico, .sidebar-subtopico').forEach(e => e.classList.remove('ativo'));
+    if (el) el.classList.add('ativo');
+}
+
+// ----- pesquisa -----
+
+function normalizar(t) {
+    return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+}
+
+// pega um trecho do texto em volta da palavra encontrada
+function extrairTrecho(texto, termo) {
+    if (!texto || !termo) return '';
+    const tNorm = normalizar(texto);
+    const idx = tNorm.indexOf(normalizar(termo));
+    if (idx === -1) return '';
+
+    const inicio = Math.max(0, idx - 40);
+    const fim = Math.min(texto.length, idx + termo.length + 60);
+    let trecho = texto.slice(inicio, fim).replace(/\n/g, ' ');
+    if (inicio > 0) trecho = '...' + trecho;
+    if (fim < texto.length) trecho = trecho + '...';
+
+    // destaca o termo encontrado no trecho
+    const regex = new RegExp(`(${termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return trecho.replace(regex, '<mark>$1</mark>');
 }
 
 function pesquisar(termo) {
-    const t = normalizarTexto(termo);
+    const t = normalizar(termo);
+    if (!t) return [];
     const res = [];
+
     dadosWiki.segmentos.forEach(s => {
-        if (normalizarTexto(s.titulo).includes(t)) res.push({ tipo: 'seg', segmentoId: s.id, titulo: s.titulo, caminho: s.titulo });
-        
         s.topicos.forEach(top => {
-            if (normalizarTexto(top.titulo).includes(t) || normalizarTexto(top.texto).includes(t)) {
-                res.push({ tipo: 'top', segmentoId: s.id, topicoId: top.id, titulo: top.titulo, caminho: `${s.titulo} > ${top.titulo}` });
+            const noTitulo = normalizar(top.titulo).includes(t);
+            const noTexto = normalizar(top.texto).includes(t);
+
+            if (noTitulo || noTexto) {
+                res.push({
+                    seg: s, top, sub: null,
+                    titulo: top.titulo,
+                    caminho: `${s.titulo} › ${top.titulo}`,
+                    trecho: noTexto ? extrairTrecho(top.texto, termo) : '',
+                    relevancia: noTitulo ? 2 : 1 // titulo tem peso maior
+                });
             }
+
             top.subtopicos.forEach(sub => {
-                if (normalizarTexto(sub.titulo).includes(t) || normalizarTexto(sub.texto).includes(t)) {
-                    res.push({ tipo: 'sub', segmentoId: s.id, topicoId: top.id, subtopicoId: sub.id, titulo: sub.titulo, caminho: `${s.titulo} > ${top.titulo} > ${sub.titulo}` });
+                const noSubTitulo = normalizar(sub.titulo).includes(t);
+                const noSubTexto = normalizar(sub.texto).includes(t);
+
+                if (noSubTitulo || noSubTexto) {
+                    res.push({
+                        seg: s, top, sub,
+                        titulo: sub.titulo,
+                        caminho: `${s.titulo} › ${top.titulo} › ${sub.titulo}`,
+                        trecho: noSubTexto ? extrairTrecho(sub.texto, termo) : '',
+                        relevancia: noSubTitulo ? 2 : 1
+                    });
                 }
             });
         });
     });
-    return res;
+
+    // ordena por relevancia (titulo > texto)
+    return res.sort((a, b) => b.relevancia - a.relevancia);
 }
 
 function mostrarResultados(resultados, termo) {
     const area = document.getElementById('resultadosPesquisa');
-    const cont = document.getElementById('segmentosContainer');
-    area.innerHTML = '';
+    const painel = document.getElementById('painelConteudo');
+    const vazio = document.getElementById('conteudoVazio');
+
+    painel.style.display = 'none';
+    vazio.style.display = 'none';
 
     if (resultados.length === 0) {
-        area.innerHTML = `<p style="padding:20px">Nenhum resultado para "${termo}"</p>`;
+        area.innerHTML = `<p style="color:var(--texto3); font-size:0.85rem; padding: 0.5rem 0">nenhum resultado pra "<strong>${termo}</strong>"</p>`;
     } else {
-        let h = `<h3 style="padding:10px 20px">Resultados (${resultados.length})</h3><ul class="resultados-lista">`;
-        resultados.forEach((r) => {
-            // Transformamos o objeto em string segura para o onclick
-            const rString = JSON.stringify(r).replace(/'/g, "&apos;");
-            h += `<li class="resultado-item" onclick='navegarParaResultado(${rString})'>
-                    <strong>${r.titulo}</strong><br><small>${r.caminho}</small>
-                  </li>`;
+        let html = `<h3>${resultados.length} resultado(s) para "<strong>${termo}</strong>"</h3><ul class="resultados-lista">`;
+        resultados.forEach((r, i) => {
+            html += `<li class="resultado-item" onclick="navegarResultado(${i})">
+                        <strong>${r.titulo}</strong>
+                        <small>${r.caminho}</small>
+                        ${r.trecho ? `<div class="resultado-trecho">${r.trecho}</div>` : ''}
+                     </li>`;
         });
-        area.innerHTML = h + '</ul>';
+        area.innerHTML = html + '</ul>';
     }
+
     area.style.display = 'block';
-    cont.style.display = 'none';
+    window._resultadosPesquisa = resultados;
 }
 
-function navegarParaResultado(r) {
+function navegarResultado(i) {
+    const r = window._resultadosPesquisa[i];
+    if (!r) return;
     limparPesquisa();
-    
-    // 1. Abrir Segmento
-    const segEl = document.querySelector(`.segmento[data-id="${r.segmentoId}"]`);
-    if (!segEl) return;
-    segEl.classList.add('aberto');
-    segEl.querySelector('.topicos-container').style.display = 'block';
 
-    // 2. Abrir Tópico (se existir)
-    if (r.topicoId) {
-        const topEl = segEl.querySelector(`.topico[data-id="${r.topicoId}"]`);
-        if (topEl) {
-            topEl.classList.add('aberto');
-            const txt = topEl.querySelector('.topico-texto');
-            const sub = topEl.querySelector('.subtopicos-container');
-            if (txt) txt.style.display = 'block';
-            if (sub) sub.style.display = 'block';
+    // abre o segmento correto na sidebar
+    const segEl = document.querySelector(`.sidebar-segmento[data-id="${r.seg.id}"]`);
+    if (segEl) segEl.classList.add('aberto');
 
-            // 3. Abrir Subtópico (se existir)
-            if (r.subtopicoId) {
-                const subEl = topEl.querySelector(`.subtopico[data-id="${r.subtopicoId}"]`);
-                if (subEl) {
-                    subEl.classList.add('aberto');
-                    subEl.querySelector('.subtopico-texto').style.display = 'block';
-                    // Scroll suave para o subtópico
-                    setTimeout(() => subEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-                }
-            } else {
-                // Scroll suave para o tópico
-                setTimeout(() => topEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-            }
-        }
+    if (r.sub) {
+        abrirSubtopico(r.seg, r.top, r.sub, null);
     } else {
-        setTimeout(() => segEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+        const topEl = document.querySelector(`.sidebar-topico[data-top-id="${r.top.id}"]`);
+        abrirTopico(r.seg, r.top, topEl);
     }
 }
 
 function limparPesquisa() {
     document.getElementById('resultadosPesquisa').style.display = 'none';
-    document.getElementById('segmentosContainer').style.display = 'block';
     document.querySelector('.barra-pesquisa').value = '';
 }
 
+// ----- tema -----
+
 function alternarTema() {
-    const isDark = document.body.classList.toggle('dark-mode');
-    document.querySelector('.icone-tema').textContent = isDark ? '🌙' : '☀️';
-    localStorage.setItem('tema', isDark ? 'escuro' : 'claro');
+    const dark = document.body.classList.toggle('dark-mode');
+    document.querySelector('.icone-tema').textContent = dark ? '🌙' : '☀️';
+    localStorage.setItem('tema', dark ? 'escuro' : 'claro');
 }
 
-function configurarCliques() {
-    document.querySelectorAll('.segmento-titulo').forEach(t => {
-        t.onclick = () => {
-            const c = t.nextElementSibling;
-            t.parentElement.classList.toggle('aberto');
-            c.style.display = c.style.display === 'none' ? 'block' : 'none';
-        };
-    });
-    document.querySelectorAll('.topico-titulo').forEach(t => {
-        t.onclick = (e) => {
-            if(e.target.tagName === 'SPAN' || e.target.classList.contains('topico-titulo')){
-               const top = t.closest('.topico');
-               top.classList.toggle('aberto');
-               const tx = top.querySelector('.topico-texto');
-               const sb = top.querySelector('.subtopicos-container');
-               if (tx) tx.style.display = tx.style.display === 'none' ? 'block' : 'none';
-               if (sb) sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
-            }
-        };
-    });
-    document.querySelectorAll('.subtopico-titulo').forEach(t => {
-        t.onclick = (e) => {
-            if(e.target.tagName === 'SPAN' || e.target.classList.contains('subtopico-titulo')){
-                const sub = t.closest('.subtopico');
-                sub.classList.toggle('aberto');
-                const tx = sub.querySelector('.subtopico-texto');
-                if (tx) tx.style.display = tx.style.display === 'none' ? 'block' : 'none';
-            }
-        };
-    });
-}
+// ----- init -----
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados();
+
+    // aplica tema salvo
     if (localStorage.getItem('tema') === 'escuro') {
         document.body.classList.add('dark-mode');
         document.querySelector('.icone-tema').textContent = '🌙';
     }
+
     document.getElementById('botaoTema').onclick = alternarTema;
-    
+
+    // pesquisa em tempo real
     const barra = document.querySelector('.barra-pesquisa');
-    barra.oninput = () => {
-        const termo = barra.value.trim();
-        if (!termo) { limparPesquisa(); return; }
+    barra.oninput = (e) => {
+        const termo = e.target.value.trim();
+        if (!termo) {
+            limparPesquisa();
+            resetarWiki();
+            return;
+        }
         mostrarResultados(pesquisar(termo), termo);
+    };
+
+    // esc limpa a pesquisa
+    barra.onkeydown = (e) => {
+        if (e.key === 'Escape') {
+            limparPesquisa();
+            resetarWiki();
+            barra.blur();
+        }
     };
 });
