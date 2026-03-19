@@ -264,7 +264,7 @@ body {
 .vazio-inner small { font-size: 0.78rem; color: var(--texto3); opacity: 0.7; }
 
 /* painel de conteudo */
-.painel-conteudo { display: none; padding: 2rem 2.5rem; max-width: 780px; }
+.painel-conteudo { display: none; padding: 2rem 2.5rem; }
 
 .painel-breadcrumb {
     font-size: 0.73rem;
