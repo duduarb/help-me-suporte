@@ -309,7 +309,7 @@ function renderizarSidebar() {
 
         const titulo = document.createElement('button');
         titulo.className = 'sidebar-seg-titulo';
-        titulo.innerHTML = `<span class="seta" aria-hidden="true">▸</span> ${escapeHtml(seg.titulo)}`;
+        titulo.innerHTML = `<span class="seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l9 7-9 7V5z"></path></svg></span> ${escapeHtml(seg.titulo)}`;
         titulo.setAttribute('aria-expanded', 'false');
         titulo.onclick = () => {
             const aberto = segEl.classList.toggle('aberto');
@@ -609,9 +609,12 @@ function limparPesquisa() {
     document.querySelector('.barra-pesquisa').value = '';
 }
 
+const ICONE_SOL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"></circle><line x1="12" y1="1.5" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22.5"></line><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"></line><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"></line><line x1="1.5" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22.5" y2="12"></line><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"></line><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"></line></svg>';
+const ICONE_LUA = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.6 15.3a8.6 8.6 0 1 1-9.9-13 9.6 9.6 0 0 0 2.8 13.1 9.5 9.5 0 0 0 7.1-.1z"></path></svg>';
+
 function alternarTema() {
     const dark = document.body.classList.toggle('dark-mode');
-    document.querySelector('.icone-tema').textContent = dark ? '🌙' : '☀️';
+    document.querySelector('.icone-tema').innerHTML = dark ? ICONE_LUA : ICONE_SOL;
     localStorage.setItem('tema', dark ? 'escuro' : 'claro');
 }
 
@@ -622,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (localStorage.getItem('tema') === 'escuro') {
         document.body.classList.add('dark-mode');
-        document.querySelector('.icone-tema').textContent = '🌙';
+        document.querySelector('.icone-tema').innerHTML = ICONE_LUA;
     }
 
     document.getElementById('botaoTema').onclick = alternarTema;
