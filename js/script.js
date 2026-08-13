@@ -1,13 +1,23 @@
-// config supabase
 const SUPABASE_URL = 'https://mrzhseelzlfrdhdrmtcy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dErYTyFdVx6V5v4f-1DhGw_r08SIYey';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let dadosWiki = { segmentos: [] };
 let usuarioLogado = null;
-let idParaDeletar = null; // guarda o id do item que vai ser deletado
+let idParaDeletar = null;
+let modoEdicao = false;
+let toastTimer = null;
 
-// verifica estado de autenticacao
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 _supabase.auth.onAuthStateChange((event, session) => {
     usuarioLogado = session ? session.user : null;
     atualizarBotaoAdmin();
@@ -15,11 +25,9 @@ _supabase.auth.onAuthStateChange((event, session) => {
     const footer = document.getElementById('sidebarFooter');
     if (footer) footer.style.display = usuarioLogado ? 'block' : 'none';
 
-    // rerenderiza pra mostrar/esconder botoes de editar
     if (dadosWiki.segmentos.length > 0) renderizarSidebar();
 });
 
-// atualiza o botao de admin no header
 function atualizarBotaoAdmin() {
     const btn = document.getElementById('btnAdminHeader');
     const label = document.getElementById('adminLabel');
@@ -34,13 +42,10 @@ function atualizarBotaoAdmin() {
     }
 }
 
-// clicou no botao admin do header
 function clicouAdmin() {
     if (usuarioLogado) {
-        // pede confirmacao antes de sair
         abrirModal('modalLogout');
     } else {
-        // manda pra pagina de login
         window.location.href = 'login.html';
     }
 }
@@ -48,11 +53,10 @@ function clicouAdmin() {
 async function fazerLogout() {
     await _supabase.auth.signOut();
     fecharModal();
-    toast('saiu do modo admin', 'sucesso');
+    toast('Você saiu do modo admin', 'sucesso');
     setTimeout(() => location.reload(), 800);
 }
 
-// reseta a wiki pro estado inicial
 function resetarWiki() {
     document.getElementById('painelConteudo').style.display = 'none';
     document.getElementById('conteudoVazio').style.display = 'flex';
@@ -61,21 +65,17 @@ function resetarWiki() {
     marcarAtivo(null);
 }
 
-// ----- drawer de adicionar/editar -----
-
-let modoEdicao = false; // controla se ta adicionando ou editando
-
 function abrirDrawer(dadosEdicao = null) {
     modoEdicao = !!dadosEdicao;
     const titulo = document.getElementById('drawerTitulo');
     const btnSalvar = document.getElementById('btnSalvar');
 
     if (modoEdicao) {
-        titulo.textContent = 'Editar Conteúdo';
-        btnSalvar.textContent = 'Salvar Alterações';
+        titulo.textContent = 'Editar conteúdo';
+        btnSalvar.textContent = 'Salvar alterações';
         preencherDrawerEdicao(dadosEdicao);
     } else {
-        titulo.textContent = 'Adicionar Conteúdo';
+        titulo.textContent = 'Adicionar conteúdo';
         btnSalvar.textContent = 'Salvar';
         limparDrawer();
         preencherDropdownSegmentos('selectSegmento');
@@ -83,6 +83,7 @@ function abrirDrawer(dadosEdicao = null) {
 
     document.getElementById('drawer').classList.add('aberto');
     document.getElementById('drawerOverlay').classList.add('aberto');
+    document.getElementById('selectSegmento').focus();
 }
 
 function fecharDrawer() {
@@ -90,7 +91,6 @@ function fecharDrawer() {
     document.getElementById('drawerOverlay').classList.remove('aberto');
 }
 
-// limpa os campos do drawer
 function limparDrawer() {
     document.getElementById('editId').value = '';
     document.getElementById('selectSegmento').value = '';
@@ -103,7 +103,6 @@ function limparDrawer() {
     document.getElementById('addTexto').value = '';
 }
 
-// preenche o drawer com dados pra edicao
 function preencherDrawerEdicao(d) {
     document.getElementById('editId').value = d.id;
     preencherDropdownSegmentos('selectSegmento');
@@ -116,11 +115,9 @@ function preencherDrawerEdicao(d) {
     document.getElementById('addTopicoNovo').style.display = 'none';
 }
 
-// ----- dropdowns dinâmicos -----
-
 function preencherDropdownSegmentos(idSelect) {
     const select = document.getElementById(idSelect);
-    select.innerHTML = `<option value="">selecione...</option><option value="novo">+ criar novo segmento</option>`;
+    select.innerHTML = '<option value="">selecione...</option><option value="novo">+ criar novo segmento</option>';
     [...new Set(dadosWiki.segmentos.map(s => s.titulo))].sort().forEach(nome => {
         const opt = document.createElement('option');
         opt.value = opt.textContent = nome;
@@ -130,7 +127,7 @@ function preencherDropdownSegmentos(idSelect) {
 
 function preencherDropdownTopicos(idSelect, nomeSegmento) {
     const select = document.getElementById(idSelect);
-    select.innerHTML = `<option value="">selecione...</option><option value="novo">+ criar novo topico</option>`;
+    select.innerHTML = '<option value="">selecione...</option><option value="novo">+ criar novo tópico</option>';
     if (!nomeSegmento) return;
     const seg = dadosWiki.segmentos.find(s => s.titulo === nomeSegmento);
     if (seg) {
@@ -148,7 +145,7 @@ function ajustarInputsDinamicos(nivel) {
         const inputSeg = document.getElementById('addSegmentoNovo');
         if (segSel.value === 'novo') {
             inputSeg.style.display = 'block';
-            document.getElementById('selectTopico').innerHTML = '<option value="novo">+ criar novo topico</option>';
+            document.getElementById('selectTopico').innerHTML = '<option value="novo">+ criar novo tópico</option>';
             ajustarInputsDinamicos('topico');
         } else {
             inputSeg.style.display = 'none';
@@ -161,8 +158,6 @@ function ajustarInputsDinamicos(nivel) {
     }
 }
 
-// ----- salvar conteudo (add ou edit) -----
-
 async function salvarConteudo() {
     const btn = document.getElementById('btnSalvar');
     const segSel = document.getElementById('selectSegmento').value;
@@ -173,59 +168,52 @@ async function salvarConteudo() {
     const txt = document.getElementById('addTexto').value.trim();
 
     if (!seg || !top || !txt) {
-        toast('preenche segmento, tópico e o texto', 'erro');
+        toast('Preencha segmento, tópico e o conteúdo', 'erro');
         return;
     }
 
-    btn.textContent = 'salvando...';
+    btn.textContent = 'Salvando...';
     btn.disabled = true;
 
     let error;
 
     if (modoEdicao) {
-        // edita o registro existente
         const id = document.getElementById('editId').value;
         ({ error } = await _supabase.from('wiki_conteudos').update({
             segmento: seg, topico: top, subtopico: sub, texto: txt
         }).eq('id', id));
     } else {
-        // insere novo registro
         ({ error } = await _supabase.from('wiki_conteudos').insert([{
             segmento: seg, topico: top, subtopico: sub, texto: txt
         }]));
     }
 
     if (error) {
-        toast('erro ao salvar: ' + error.message, 'erro');
-        btn.textContent = modoEdicao ? 'Salvar Alterações' : 'Salvar';
+        toast('Erro ao salvar: ' + error.message, 'erro');
+        btn.textContent = modoEdicao ? 'Salvar alterações' : 'Salvar';
         btn.disabled = false;
     } else {
-        toast(modoEdicao ? 'atualizado!' : 'salvo!', 'sucesso');
+        toast(modoEdicao ? 'Conteúdo atualizado' : 'Conteúdo salvo', 'sucesso');
         fecharDrawer();
         setTimeout(() => location.reload(), 700);
     }
 }
 
-// ----- deletar -----
-
 function confirmarDelete(id) {
     idParaDeletar = id;
     abrirModal('modalDelete');
 
-    // configura o botao de confirmar
     document.getElementById('btnConfirmarDelete').onclick = async () => {
         const { error } = await _supabase.from('wiki_conteudos').delete().eq('id', idParaDeletar);
         fecharModal();
         if (!error) {
-            toast('apagado!', 'sucesso');
+            toast('Conteúdo apagado', 'sucesso');
             setTimeout(() => location.reload(), 700);
         } else {
-            toast('erro ao apagar', 'erro');
+            toast('Erro ao apagar', 'erro');
         }
     };
 }
-
-// ----- modais simples -----
 
 function abrirModal(id) {
     document.getElementById(id).classList.add('aberto');
@@ -235,14 +223,13 @@ function fecharModal() {
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('aberto'));
 }
 
-// clique fora fecha o modal
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-overlay')) fecharModal();
 });
 
-// ----- toast -----
-
-let toastTimer = null;
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') fecharModal();
+});
 
 function toast(msg, tipo = '') {
     const el = document.getElementById('toast');
@@ -255,11 +242,9 @@ function toast(msg, tipo = '') {
     }, 2800);
 }
 
-// ----- carregar e renderizar -----
-
 function formatarLinks(texto) {
     if (!texto) return '';
-    return texto.replace(/(https?:\/\/[^\s]+)/g, url => `<a href="${url}" target="_blank">${url}</a>`);
+    return escapeHtml(texto).replace(/(https?:\/\/[^\s]+)/g, url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
 }
 
 function slugify(str) {
@@ -273,7 +258,7 @@ async function carregarDados() {
     if (loading) loading.style.display = 'none';
 
     if (error || !data) {
-        if (loading) { loading.style.display = 'block'; loading.textContent = 'erro ao carregar :('; }
+        if (loading) { loading.style.display = 'block'; loading.textContent = 'Não foi possível carregar o conteúdo'; }
         return;
     }
 
@@ -312,7 +297,6 @@ async function carregarDados() {
     renderizarSidebar();
 }
 
-// monta a sidebar
 function renderizarSidebar() {
     const nav = document.getElementById('sidebarNav');
     if (!nav) return;
@@ -325,23 +309,26 @@ function renderizarSidebar() {
 
         const titulo = document.createElement('button');
         titulo.className = 'sidebar-seg-titulo';
-        titulo.innerHTML = `<span class="seta">▸</span> ${seg.titulo}`;
-        titulo.onclick = () => segEl.classList.toggle('aberto');
+        titulo.innerHTML = `<span class="seta" aria-hidden="true">▸</span> ${escapeHtml(seg.titulo)}`;
+        titulo.setAttribute('aria-expanded', 'false');
+        titulo.onclick = () => {
+            const aberto = segEl.classList.toggle('aberto');
+            titulo.setAttribute('aria-expanded', String(aberto));
+        };
 
         const lista = document.createElement('div');
         lista.className = 'sidebar-topicos';
 
         seg.topicos.forEach(top => {
-            const topEl = document.createElement('div');
+            const topEl = document.createElement('button');
             topEl.className = 'sidebar-topico';
             topEl.dataset.topId = top.id;
             topEl.textContent = top.titulo;
             topEl.onclick = () => abrirTopico(seg, top, topEl);
             lista.appendChild(topEl);
 
-            // subtopicos aparecem embaixo do topico na sidebar
             top.subtopicos.forEach(sub => {
-                const subEl = document.createElement('div');
+                const subEl = document.createElement('button');
                 subEl.className = 'sidebar-subtopico';
                 subEl.dataset.subId = sub.id;
                 subEl.textContent = sub.titulo;
@@ -356,7 +343,6 @@ function renderizarSidebar() {
     });
 }
 
-// abre o topico no painel da direita
 function abrirTopico(seg, top, elClicado) {
     marcarAtivo(elClicado);
 
@@ -368,15 +354,14 @@ function abrirTopico(seg, top, elClicado) {
     resultados.style.display = 'none';
     painel.style.display = 'block';
 
-    // breadcrumb
     let html = `
         <div class="painel-breadcrumb">
-            <span class="breadcrumb-link" onclick="abrirSegmento('${seg.id}')">${seg.titulo}</span>
+            <button class="breadcrumb-link" onclick="abrirSegmento('${seg.id}')">${escapeHtml(seg.titulo)}</button>
             <span class="sep">›</span>
-            <span>${top.titulo}</span>
+            <span>${escapeHtml(top.titulo)}</span>
         </div>
         <div class="painel-topo">
-            <h2 class="painel-titulo">${top.titulo}</h2>
+            <h2 class="painel-titulo">${escapeHtml(top.titulo)}</h2>
             ${usuarioLogado ? btnsAdminHtml(top.id_banco, seg.titulo, top.titulo, '', top.texto) : ''}
         </div>
     `;
@@ -385,12 +370,11 @@ function abrirTopico(seg, top, elClicado) {
         html += `<div class="painel-texto">${formatarLinks(top.texto).replace(/\n/g, '<br>')}</div>`;
     }
 
-    // subtopicos
     top.subtopicos.forEach(sub => {
         html += `
             <div class="painel-sub" id="sub-${sub.id}">
                 <div class="painel-sub-topo">
-                    <div class="painel-sub-titulo">${sub.titulo}</div>
+                    <div class="painel-sub-titulo">${escapeHtml(sub.titulo)}</div>
                     ${usuarioLogado ? btnsAdminHtml(sub.id_banco, seg.titulo, top.titulo, sub.titulo, sub.texto) : ''}
                 </div>
                 <div class="painel-sub-texto">${formatarLinks(sub.texto).replace(/\n/g, '<br>')}</div>
@@ -402,7 +386,6 @@ function abrirTopico(seg, top, elClicado) {
     document.getElementById('areaConteudo').scrollTop = 0;
 }
 
-// abre o topico e da scroll pro subtopico
 function abrirSubtopico(seg, top, sub, elClicado) {
     marcarAtivo(elClicado);
 
@@ -414,17 +397,16 @@ function abrirSubtopico(seg, top, sub, elClicado) {
     resultados.style.display = 'none';
     painel.style.display = 'block';
 
-    // mostra so o subtopico selecionado, nao o topico inteiro
     painel.innerHTML = `
         <div class="painel-breadcrumb">
-            <span class="breadcrumb-link" onclick="abrirSegmento('${seg.id}')">${seg.titulo}</span>
+            <button class="breadcrumb-link" onclick="abrirSegmento('${seg.id}')">${escapeHtml(seg.titulo)}</button>
             <span class="sep">›</span>
-            <span class="breadcrumb-link" onclick="reabrirTopico('${seg.id}', '${top.id}')">${top.titulo}</span>
+            <button class="breadcrumb-link" onclick="reabrirTopico('${seg.id}', '${top.id}')">${escapeHtml(top.titulo)}</button>
             <span class="sep">›</span>
-            <span>${sub.titulo}</span>
+            <span>${escapeHtml(sub.titulo)}</span>
         </div>
         <div class="painel-topo">
-            <h2 class="painel-titulo">${sub.titulo}</h2>
+            <h2 class="painel-titulo">${escapeHtml(sub.titulo)}</h2>
             ${usuarioLogado ? btnsAdminHtml(sub.id_banco, seg.titulo, top.titulo, sub.titulo, sub.texto) : ''}
         </div>
         <div class="painel-texto">${formatarLinks(sub.texto).replace(/\n/g, '<br>')}</div>
@@ -433,7 +415,6 @@ function abrirSubtopico(seg, top, sub, elClicado) {
     document.getElementById('areaConteudo').scrollTop = 0;
 }
 
-// abre o topico pai quando clica no breadcrumb
 function reabrirTopico(segId, topId) {
     const seg = dadosWiki.segmentos.find(s => s.id === segId);
     if (!seg) return;
@@ -443,16 +424,13 @@ function reabrirTopico(segId, topId) {
     abrirTopico(seg, top, topEl);
 }
 
-// expande o segmento na sidebar e mostra os topicos dele no painel
 function abrirSegmento(segId) {
     const seg = dadosWiki.segmentos.find(s => s.id === segId);
     if (!seg) return;
 
-    // abre na sidebar
     const segEl = document.querySelector(`.sidebar-segmento[data-id="${segId}"]`);
     if (segEl) segEl.classList.add('aberto');
 
-    // mostra lista de topicos do segmento no painel em vez de tela em branco
     const painel = document.getElementById('painelConteudo');
     const vazio = document.getElementById('conteudoVazio');
     const resultados = document.getElementById('resultadosPesquisa');
@@ -464,18 +442,20 @@ function abrirSegmento(segId) {
 
     let html = `
         <div class="painel-breadcrumb">
-            <span>${seg.titulo}</span>
+            <span>${escapeHtml(seg.titulo)}</span>
         </div>
         <div class="painel-topo">
-            <h2 class="painel-titulo">${seg.titulo}</h2>
+            <h2 class="painel-titulo">${escapeHtml(seg.titulo)}</h2>
         </div>
         <ul class="lista-topicos-seg">
     `;
 
     seg.topicos.forEach(top => {
-        html += `<li class="item-topico-seg" onclick="abrirTopicoById('${seg.id}', '${top.id}')">
-            ${top.titulo}
-            ${top.subtopicos.length > 0 ? `<small>${top.subtopicos.length} subtópico(s)</small>` : ''}
+        html += `<li>
+            <button class="item-topico-seg" onclick="abrirTopicoById('${seg.id}', '${top.id}')">
+                ${escapeHtml(top.titulo)}
+                ${top.subtopicos.length > 0 ? `<small>${top.subtopicos.length} subtópico(s)</small>` : ''}
+            </button>
         </li>`;
     });
 
@@ -484,7 +464,6 @@ function abrirSegmento(segId) {
     document.getElementById('areaConteudo').scrollTop = 0;
 }
 
-// abre topico pelo id - usado na lista de topicos do segmento
 function abrirTopicoById(segId, topId) {
     const seg = dadosWiki.segmentos.find(s => s.id === segId);
     if (!seg) return;
@@ -494,17 +473,14 @@ function abrirTopicoById(segId, topId) {
     abrirTopico(seg, top, topEl);
 }
 
-// gera o html dos botoes de editar/deletar no painel
 function btnsAdminHtml(id, seg, top, sub, txt) {
-    // dados em base64 pra evitar problema com aspas especiais
     const dados = btoa(unescape(encodeURIComponent(JSON.stringify({ id, seg, top, sub, txt }))));
     return `<div class="btns-admin">
-        <button class="btn-edit" onclick="editarItem('${dados}')">editar</button>
-        <button class="btn-del" onclick="confirmarDelete(${id})">apagar</button>
+        <button class="btn-edit" onclick="editarItem('${dados}')">Editar</button>
+        <button class="btn-del" onclick="confirmarDelete('${id}')">Apagar</button>
     </div>`;
 }
 
-// decodifica os dados e abre o drawer de edicao
 function editarItem(dadosBase64) {
     const dados = JSON.parse(decodeURIComponent(escape(atob(dadosBase64))));
     abrirDrawer({
@@ -516,19 +492,15 @@ function editarItem(dadosBase64) {
     });
 }
 
-// marca item ativo na sidebar
 function marcarAtivo(el) {
     document.querySelectorAll('.sidebar-topico, .sidebar-subtopico').forEach(e => e.classList.remove('ativo'));
     if (el) el.classList.add('ativo');
 }
 
-// ----- pesquisa -----
-
 function normalizar(t) {
     return t ? t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
 }
 
-// pega um trecho do texto em volta da palavra encontrada
 function extrairTrecho(texto, termo) {
     if (!texto || !termo) return '';
     const tNorm = normalizar(texto);
@@ -537,12 +509,12 @@ function extrairTrecho(texto, termo) {
 
     const inicio = Math.max(0, idx - 40);
     const fim = Math.min(texto.length, idx + termo.length + 60);
-    let trecho = texto.slice(inicio, fim).replace(/\n/g, ' ');
+    let trecho = escapeHtml(texto.slice(inicio, fim).replace(/\n/g, ' '));
     if (inicio > 0) trecho = '...' + trecho;
     if (fim < texto.length) trecho = trecho + '...';
 
-    // destaca o termo encontrado no trecho
-    const regex = new RegExp(`(${termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const termoEscapado = escapeHtml(termo).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${termoEscapado})`, 'gi');
     return trecho.replace(regex, '<mark>$1</mark>');
 }
 
@@ -562,7 +534,7 @@ function pesquisar(termo) {
                     titulo: top.titulo,
                     caminho: `${s.titulo} › ${top.titulo}`,
                     trecho: noTexto ? extrairTrecho(top.texto, termo) : '',
-                    relevancia: noTitulo ? 2 : 1 // titulo tem peso maior
+                    relevancia: noTitulo ? 2 : 1
                 });
             }
 
@@ -583,7 +555,6 @@ function pesquisar(termo) {
         });
     });
 
-    // ordena por relevancia (titulo > texto)
     return res.sort((a, b) => b.relevancia - a.relevancia);
 }
 
@@ -595,15 +566,19 @@ function mostrarResultados(resultados, termo) {
     painel.style.display = 'none';
     vazio.style.display = 'none';
 
+    const termoSeguro = escapeHtml(termo);
+
     if (resultados.length === 0) {
-        area.innerHTML = `<p style="color:var(--texto3); font-size:0.85rem; padding: 0.5rem 0">nenhum resultado pra "<strong>${termo}</strong>"</p>`;
+        area.innerHTML = `<p class="resultado-vazio">Nenhum resultado para "<strong>${termoSeguro}</strong>"</p>`;
     } else {
-        let html = `<h3>${resultados.length} resultado(s) para "<strong>${termo}</strong>"</h3><ul class="resultados-lista">`;
+        let html = `<h3>${resultados.length} resultado(s) para "<strong>${termoSeguro}</strong>"</h3><ul class="resultados-lista">`;
         resultados.forEach((r, i) => {
-            html += `<li class="resultado-item" onclick="navegarResultado(${i})">
-                        <strong>${r.titulo}</strong>
-                        <small>${r.caminho}</small>
-                        ${r.trecho ? `<div class="resultado-trecho">${r.trecho}</div>` : ''}
+            html += `<li>
+                        <button class="resultado-item" onclick="navegarResultado(${i})">
+                            <strong>${escapeHtml(r.titulo)}</strong>
+                            <small>${escapeHtml(r.caminho)}</small>
+                            ${r.trecho ? `<div class="resultado-trecho">${r.trecho}</div>` : ''}
+                        </button>
                      </li>`;
         });
         area.innerHTML = html + '</ul>';
@@ -618,7 +593,6 @@ function navegarResultado(i) {
     if (!r) return;
     limparPesquisa();
 
-    // abre o segmento correto na sidebar
     const segEl = document.querySelector(`.sidebar-segmento[data-id="${r.seg.id}"]`);
     if (segEl) segEl.classList.add('aberto');
 
@@ -635,20 +609,17 @@ function limparPesquisa() {
     document.querySelector('.barra-pesquisa').value = '';
 }
 
-// ----- tema -----
-
 function alternarTema() {
     const dark = document.body.classList.toggle('dark-mode');
     document.querySelector('.icone-tema').textContent = dark ? '🌙' : '☀️';
     localStorage.setItem('tema', dark ? 'escuro' : 'claro');
 }
 
-// ----- init -----
+let debouncePesquisa = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarDados();
 
-    // aplica tema salvo
     if (localStorage.getItem('tema') === 'escuro') {
         document.body.classList.add('dark-mode');
         document.querySelector('.icone-tema').textContent = '🌙';
@@ -656,19 +627,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('botaoTema').onclick = alternarTema;
 
-    // pesquisa em tempo real
     const barra = document.querySelector('.barra-pesquisa');
     barra.oninput = (e) => {
         const termo = e.target.value.trim();
-        if (!termo) {
-            limparPesquisa();
-            resetarWiki();
-            return;
-        }
-        mostrarResultados(pesquisar(termo), termo);
+        clearTimeout(debouncePesquisa);
+        debouncePesquisa = setTimeout(() => {
+            if (!termo) {
+                limparPesquisa();
+                resetarWiki();
+                return;
+            }
+            mostrarResultados(pesquisar(termo), termo);
+        }, 150);
     };
 
-    // esc limpa a pesquisa
     barra.onkeydown = (e) => {
         if (e.key === 'Escape') {
             limparPesquisa();

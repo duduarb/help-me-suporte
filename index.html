@@ -3,51 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wiki Suporte Consumo - Intelbras</title>
+    <meta name="description" content="Base de conhecimento interna do suporte de consumo Intelbras.">
+    <meta name="theme-color" content="#00a859">
+    <title>Wiki Suporte Consumo — Intelbras</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="images/wiki.png">
+    <script>
+        if (localStorage.getItem('tema') === 'escuro') {
+            document.documentElement.classList.add('tema-escuro-preload');
+        }
+    </script>
+    <style>.tema-escuro-preload{background:#121212}</style>
 </head>
 <body>
 
     <header class="cabecalho">
         <div class="cabecalho-esquerda">
-            <h1 onclick="resetarWiki()" class="logo-wiki">Wiki Suporte Consumo</h1>
+            <button class="logo-wiki" onclick="resetarWiki()">Wiki Suporte Consumo</button>
         </div>
         <div class="cabecalho-centro">
-            <input type="text" class="barra-pesquisa" id="inputPesquisa" placeholder="Pesquisar na wiki...">
+            <input type="text" class="barra-pesquisa" id="inputPesquisa" placeholder="Pesquisar na wiki..." aria-label="Pesquisar na wiki">
         </div>
         <div class="cabecalho-direita">
-            <!-- botao de tema -->
-            <button class="botao-tema" id="botaoTema" title="alternar tema">
-                <span class="icone-tema">☀️</span>
+            <button class="botao-tema" id="botaoTema" title="Alternar tema" aria-label="Alternar tema claro ou escuro">
+                <span class="icone-tema" aria-hidden="true">☀️</span>
             </button>
-            <!-- botao admin - muda dependendo do estado de login -->
             <button class="btn-admin-header" id="btnAdminHeader" onclick="clicouAdmin()">
-                <span id="adminLabel">Admin</span>
+                <span id="adminLabel">Login</span>
             </button>
         </div>
     </header>
 
     <div class="layout">
 
-        <!-- sidebar esquerda -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-loading" id="sidebarLoading">carregando...</div>
-            <div class="sidebar-conteudo" id="sidebarNav"></div>
+        <aside class="sidebar" id="sidebar" aria-label="Navegação de segmentos e tópicos">
+            <div class="sidebar-loading" id="sidebarLoading">Carregando...</div>
+            <nav class="sidebar-conteudo" id="sidebarNav"></nav>
 
-            <!-- botao de add fica no fundo da sidebar, so aparece logado -->
             <div class="sidebar-footer" id="sidebarFooter" style="display:none">
-                <button class="btn-add-sidebar" onclick="abrirDrawer()">+ adicionar conteúdo</button>
+                <button class="btn-add-sidebar" onclick="abrirDrawer()">+ Adicionar conteúdo</button>
             </div>
         </aside>
 
-        <!-- area de conteudo direita -->
         <main class="area-conteudo" id="areaConteudo">
             <div class="conteudo-vazio" id="conteudoVazio">
                 <div class="vazio-inner">
-                    <div class="vazio-icone">📖</div>
+                    <div class="vazio-icone" aria-hidden="true">📖</div>
                     <p>Selecione um tópico na barra lateral</p>
-                    <small>ou use a pesquisa pra encontrar algo</small>
+                    <small>ou use a pesquisa para encontrar algo</small>
                 </div>
             </div>
             <div id="resultadosPesquisa" class="resultados-pesquisa"></div>
@@ -59,13 +62,13 @@
     <footer class="rodape">
         <div class="rodape-conteudo">
             <div class="rodape-links">
-                <a href="https://github.com/duduarb" target="_blank" title="GitHub" class="rodape-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <a href="https://github.com/duduarb" target="_blank" rel="noopener noreferrer" title="GitHub" class="rodape-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                     </svg>
                 </a>
-                <a href="https://www.linkedin.com/in/anderson-eduardo-bento/" target="_blank" title="LinkedIn" class="rodape-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <a href="https://www.linkedin.com/in/anderson-eduardo-bento/" target="_blank" rel="noopener noreferrer" title="LinkedIn" class="rodape-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                     </svg>
                 </a>
@@ -73,42 +76,41 @@
         </div>
     </footer>
 
-    <!-- drawer de adicionar/editar - abre da direita -->
     <div class="drawer-overlay" id="drawerOverlay" onclick="fecharDrawer()"></div>
-    <div class="drawer" id="drawer">
+    <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitulo">
         <div class="drawer-header">
-            <h2 id="drawerTitulo">Adicionar Conteúdo</h2>
-            <button class="drawer-fechar" onclick="fecharDrawer()">✕</button>
+            <h2 id="drawerTitulo">Adicionar conteúdo</h2>
+            <button class="drawer-fechar" onclick="fecharDrawer()" aria-label="Fechar">✕</button>
         </div>
 
         <div class="drawer-body">
             <input type="hidden" id="editId">
 
             <div class="campo-grupo">
-                <label>Segmento</label>
+                <label for="selectSegmento">Segmento</label>
                 <select id="selectSegmento" onchange="ajustarInputsDinamicos('segmento')">
                     <option value="">selecione...</option>
                     <option value="novo">+ criar novo segmento</option>
                 </select>
-                <input type="text" id="addSegmentoNovo" class="campo-novo" placeholder="nome do novo segmento">
+                <input type="text" id="addSegmentoNovo" class="campo-novo" placeholder="Nome do novo segmento">
             </div>
 
             <div class="campo-grupo">
-                <label>Tópico</label>
+                <label for="selectTopico">Tópico</label>
                 <select id="selectTopico" onchange="ajustarInputsDinamicos('topico')">
                     <option value="">selecione um segmento primeiro...</option>
                 </select>
-                <input type="text" id="addTopicoNovo" class="campo-novo" placeholder="nome do novo tópico">
+                <input type="text" id="addTopicoNovo" class="campo-novo" placeholder="Nome do novo tópico">
             </div>
 
             <div class="campo-grupo">
-                <label>Subtópico <span class="label-opcional">(opcional)</span></label>
+                <label for="addSubtopico">Subtópico <span class="label-opcional">(opcional)</span></label>
                 <input type="text" id="addSubtopico" placeholder="ex: instalação, configuração...">
             </div>
 
             <div class="campo-grupo">
-                <label>Conteúdo</label>
-                <textarea id="addTexto" placeholder="escreve o texto aqui..."></textarea>
+                <label for="addTexto">Conteúdo</label>
+                <textarea id="addTexto" placeholder="Escreva o conteúdo aqui..."></textarea>
             </div>
 
             <div class="drawer-acoes">
@@ -118,10 +120,9 @@
         </div>
     </div>
 
-    <!-- modal de confirmacao de logout -->
-    <div class="modal-overlay" id="modalLogout">
+    <div class="modal-overlay" id="modalLogout" role="dialog" aria-modal="true">
         <div class="modal-box">
-            <p>sair do modo admin?</p>
+            <p>Sair do modo admin?</p>
             <div class="modal-acoes">
                 <button class="btn-confirmar-modal" onclick="fazerLogout()">Sair</button>
                 <button class="btn-cancelar-modal" onclick="fecharModal()">Cancelar</button>
@@ -129,11 +130,10 @@
         </div>
     </div>
 
-    <!-- modal de confirmacao de delete -->
-    <div class="modal-overlay" id="modalDelete">
+    <div class="modal-overlay" id="modalDelete" role="dialog" aria-modal="true">
         <div class="modal-box">
-            <p>apagar esse conteúdo?</p>
-            <small style="color:#999; display:block; margin-top:4px">isso não tem como desfazer</small>
+            <p>Apagar esse conteúdo?</p>
+            <small style="color:var(--texto3); display:block; margin-top:4px">Essa ação não pode ser desfeita</small>
             <div class="modal-acoes">
                 <button class="btn-confirmar-modal btn-danger" id="btnConfirmarDelete">Apagar</button>
                 <button class="btn-cancelar-modal" onclick="fecharModal()">Cancelar</button>
@@ -141,8 +141,7 @@
         </div>
     </div>
 
-    <!-- toast de notificacao -->
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
